@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Plan your WoW Forever account: characters, professions and Legacy Points.">
-<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Forever Legacy Planner</title>
 <script>const whTooltips={colorLinks:true,iconizeLinks:true,renameLinks:true,iconSize:"small"};</script>
 <script src="https://wow.zamimg.com/js/tooltips.js" async></script>
@@ -13,20 +13,14 @@
 <style>
 /* Layout: account header + summary strip, then five tabs — Roster table, Character editor, Professions coverage, Legacy ledger, Account & data. */
 :root{
-  --bg:#eef1f4; --surface:#ffffff; --sunk:#e4e9ef; --ink:#17202b; --muted:#5a6777; --line:#cfd6df;
-  --accent:#167b8c; --accent-ink:#ffffff; --accent-soft:#d5edf1; --gold:#9c7116; --gold-soft:#f4e7c8;
-  --warn:#a1462b; --warn-soft:#f6e0d8; --ok:#2f7a3d; --ok-soft:#dcefdf; --badge:#1c2732;
+  /* One dark theme for everyone; a selected character's class shows through text colour */
+  --bg:#0e141b; --surface:#16202a; --sunk:#1d2834; --ink:#e5ecf2; --muted:#93a1b0; --line:#2a3745;
+  --accent:#4ec2d3; --accent-ink:#06232a; --accent-soft:#143840; --gold:#ddb052; --gold-soft:#3a2e15;
+  --warn:#ee8b6c; --warn-soft:#3d2219; --ok:#7fcf8c; --ok-soft:#183322; --badge:#0a0f14;
   --display:"Cinzel",Georgia,"Times New Roman",serif;
   --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0e141b; --surface:#16202a; --sunk:#1d2834; --ink:#e5ecf2; --muted:#93a1b0; --line:#2a3745;
-  --accent:#4ec2d3; --accent-ink:#06232a; --accent-soft:#143840; --gold:#ddb052; --gold-soft:#3a2e15;
-  --warn:#ee8b6c; --warn-soft:#3d2219; --ok:#7fcf8c; --ok-soft:#183322; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0e141b; --surface:#16202a; --sunk:#1d2834; --ink:#e5ecf2; --muted:#93a1b0; --line:#2a3745;
-  --accent:#4ec2d3; --accent-ink:#06232a; --accent-soft:#143840; --gold:#ddb052; --gold-soft:#3a2e15;
-  --warn:#ee8b6c; --warn-soft:#3d2219; --ok:#7fcf8c; --ok-soft:#183322; color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
@@ -140,12 +134,11 @@ table.roster{border-collapse:collapse;width:100%;min-width:900px;font-size:.9rem
 @media (max-width:820px){.chars{grid-template-columns:minmax(0,1fr)}}
 .picker{display:flex;flex-direction:column;gap:6px}
 .rc{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
-.rc{--cc:var(--line);background:color-mix(in srgb,var(--cc) 14%,var(--surface));border-color:color-mix(in srgb,var(--cc) 45%,var(--line));box-shadow:inset 4px 0 0 var(--cc)}
-.rc:hover{background:color-mix(in srgb,var(--cc) 24%,var(--surface))}
-.rc[aria-current="true"]{background:color-mix(in srgb,var(--cc) 32%,var(--surface));border-color:var(--cc);box-shadow:inset 6px 0 0 var(--cc),0 0 0 1px var(--cc)}
-.editor.classed{border-top:4px solid var(--cc)}
-.roster tbody td:first-child{box-shadow:inset 4px 0 0 var(--cc,transparent)}
-.roster tr[aria-current="true"] td{background:color-mix(in srgb,var(--cc) 22%,var(--surface))}
+.rc{--cc:var(--ink)}
+.rc .n,.roster .nm,.editor.classed h2{color:color-mix(in srgb,var(--cc) 82%,#fff)}
+.rc:hover{background:var(--sunk)}
+.rc[aria-current="true"]{background:var(--sunk);border-color:color-mix(in srgb,var(--cc) 70%,var(--line))}
+.roster tr[aria-current="true"] td{background:var(--sunk)}
 .rc .n{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 .rc .s{font-size:.8rem;color:var(--muted)}
 .rc .p{font-variant-numeric:tabular-nums;font-weight:700;font-size:.85rem;text-align:right}
@@ -286,13 +279,11 @@ a.wh:hover{text-decoration:underline}
 .copyout{width:100%;min-height:160px;margin:8px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:8px}
 @media (max-width:560px){.gitems{padding-left:0}.ggroup>.note,.zname{padding-left:0;margin-left:0}.gitems .slot{min-width:0}}
 /* Whole-window class theme while a character is open in the Character tab */
-:root.classmode,:root.classmode body{background:color-mix(in srgb,var(--cc) 20%,var(--bg))}
-.classmode .panel,.classmode .stat,.classmode .rc:not([aria-current="true"]){background:color-mix(in srgb,var(--cc) 7%,var(--surface))}
-.classmode .strip{background:color-mix(in srgb,var(--cc) 40%,var(--line));border-color:color-mix(in srgb,var(--cc) 40%,var(--line))}
-.classmode .tabs{border-bottom-color:color-mix(in srgb,var(--cc) 55%,var(--line))}
-.classmode .field input,.classmode .field select,.classmode .field textarea{background:color-mix(in srgb,var(--cc) 5%,var(--bg));border-color:color-mix(in srgb,var(--cc) 30%,var(--line))}
-.classmode .block{border-top-color:color-mix(in srgb,var(--cc) 35%,var(--line))}
-.classmode h1{color:color-mix(in srgb,var(--cc) 35%,var(--ink))}
+:root.classmode{--cct:color-mix(in srgb,var(--cc) 82%,#fff)}
+.classmode h1,.classmode h2,.classmode h3,.classmode .label,.classmode .gcat>h3,.classmode .scard>h3{color:var(--cct)}
+.classmode .tab[aria-selected="true"],.classmode .subtabs button[aria-selected="true"]{color:var(--cct)}
+.classmode .tab[aria-selected="true"]{border-bottom-color:var(--cct)}
+.classmode .stat .v{color:var(--cct)}
 @media (prefers-reduced-motion:no-preference){.track .fill{transition:width .35s ease}:root,body,.panel,.stat{transition:background-color .3s ease}}
 </style>
 </head>
