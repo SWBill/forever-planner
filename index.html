@@ -214,6 +214,24 @@ table.grid{border-collapse:separate;border-spacing:4px;min-width:100%}
 .preview{border-radius:8px;background:var(--sunk);padding:10px 12px;font-size:.88rem}
 code{font-size:.85em;background:var(--sunk);padding:1px 5px;border-radius:4px}
 footer{font-size:.8rem;color:var(--muted)}
+/* Recipes and craft labels */
+.recipes{display:flex;flex-direction:column}
+.recipe{display:grid;grid-template-columns:minmax(0,1fr) 6.5rem 16.5rem;gap:8px 14px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line)}
+.recipe:last-child{border-bottom:0}
+.recipe.low{opacity:.6}
+.rmain{min-width:0}
+.rreq{display:flex;flex-direction:column;gap:2px}
+.rreq input{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:5px 8px;width:100%;font-variant-numeric:tabular-nums}
+.rlow{justify-self:start}
+.recipe .seg{justify-self:start}
+@media (max-width:560px){.recipe{grid-template-columns:minmax(0,1fr) 5.5rem}.recipe .seg,.rlow{grid-column:1/-1;justify-self:start}}
+.craft{display:inline-block;font-size:.78rem;font-weight:600;margin-left:6px}
+.craft.known{color:var(--ok)}
+.craft.could{color:var(--gold)}
+.craft.none{color:var(--warn)}
+.sname2{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:2px}
+.sname2 a.wh{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.sname2 .craft{margin-left:4px}
 /* Gear sub-tabs */
 .subtabs{display:inline-flex;gap:4px;background:var(--sunk);padding:4px;border-radius:12px;align-self:flex-start}
 .subtabs button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
@@ -234,7 +252,7 @@ footer{font-size:.8rem;color:var(--muted)}
 .sitems li{display:flex;align-items:center;gap:8px;font-size:.88rem;min-width:0;padding:2px 0}
 .sitems li.ench .sslot{font-style:italic}
 .sslot{flex:none;width:5.6rem;color:var(--muted);font-size:.8rem;font-weight:600}
-.sitems a.wh{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 .swho .cicon{width:18px;height:18px;margin-right:0}
 .stick{flex:none;margin-left:auto;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:.75rem;line-height:1;cursor:pointer;opacity:.55}
 .sitems li:hover .stick,.stick:focus-visible{opacity:1}
@@ -385,10 +403,10 @@ function blankAfter(){return {p:"",skill:0,goal:300}}
 function blankProf(){return {p:"",skill:0,goal:300,drop:false,after:blankAfter()}}
 function blankChar(o){
   var c={id:uid(),name:"New character",surname:"",cls:"Warrior",race:"",gender:"",purpose:"",spec1:"",spec2:"",hc:false,
-    faction:"",level:0,levelGoal:60,profs:[blankProf(),blankProf()],firstAid:"",fishing:"",cooking:"",rank:0,rankGoal:0,t:{},notes:"",gear:blankGear()};
+    faction:"",level:0,levelGoal:60,profs:[blankProf(),blankProf()],firstAid:"",fishing:"",cooking:"",rank:0,rankGoal:0,t:{},notes:"",gear:blankGear(),recipes:{}};
   if(o)for(var k in o)c[k]=o[k];return c;
 }
-function blankAccount(){return {name:"",faction:"",ruleset:"Normal",notes:"",zones:{}}}
+function blankAccount(){return {name:"",faction:"",ruleset:"Normal",notes:"",zones:{},recipeSkill:{}}}
 function normChar(c){
   var b=blankChar();var out={};
   for(var k in b)out[k]=(c&&c[k]!==undefined&&c[k]!==null)?c[k]:b[k];
@@ -403,11 +421,12 @@ function normChar(c){
   if(out.faction!=="Horde"&&out.faction!=="Alliance")out.faction="";
   if(!out.name)out.name="Unnamed";
   out.gear=normGear(c&&c.gear);
+  out.recipes={};if(c&&c.recipes&&typeof c.recipes==="object")Object.keys(c.recipes).forEach(function(k){if(c.recipes[k]===true||c.recipes[k]===false)out.recipes[k]=c.recipes[k]});
   return out;
 }
 function normState(d){
   if(!d||!Array.isArray(d.chars))return null;
-  var a=Object.assign(blankAccount(),d.account||{});if(!a.zones||typeof a.zones!=="object")a.zones={};
+  var a=Object.assign(blankAccount(),d.account||{});if(!a.zones||typeof a.zones!=="object")a.zones={};if(!a.recipeSkill||typeof a.recipeSkill!=="object")a.recipeSkill={};
   var chars=d.chars.map(normChar);
   return {v:2,example:!!d.example,account:a,chars:chars,sel:chars.some(function(c){return c.id===d.sel})?d.sel:(chars[0]?chars[0].id:null)};
 }
@@ -633,10 +652,37 @@ function shoppingList(chars){
   var total=list.reduce(function(n,g){return n+g.items},0),totalE=list.reduce(function(n,g){return n+g.ench},0);
   return {cats:cats,best:best,total:total,totalE:totalE,stops:list.length};
 }
-function crafters(skill){
-  var name=SKILLS[skill];if(!name)return [];
-  var out=[];S.chars.forEach(function(c){allProfs(c).forEach(function(x){if(x.p===name)out.push({c:c,x:x})})});
-  return out;
+/* Who can make a recipe. A character counts only if they keep the profession and their current skill
+   reaches the recipe's required skill (set once per recipe; until then any skill above 0 counts).
+   "Craftable by" = confirmed they know the recipe; "Could be crafted by" = has the profession, not yet confirmed. */
+function recipeReq(spell){return +((S.account.recipeSkill||{})[spell])||0}
+function profOf(c,skillId){var name=SKILLS[skillId];if(!name)return null;var best=null;allProfs(c).forEach(function(x){if(x.p===name&&!x.drop&&(!best||x.skill>best.skill))best=x});return best}
+function craftStatus(spell,skillId){
+  var req=recipeReq(spell),known=[],could=[],low=[];
+  S.chars.forEach(function(c){var x=profOf(c,skillId);if(!x)return;
+    if(x.skill<Math.max(req,1)){low.push({c:c,x:x});return}
+    var r=c.recipes[spell];if(r===true)known.push(c);else if(r!==false)could.push(c)});
+  return known.length?{state:"known",who:known,low:low}:could.length?{state:"could",who:could,low:low}:{state:"none",who:[],low:low};
+}
+function craftLabelHTML(src){
+  if(src.t!=="craft")return "";
+  var st=craftStatus(src.spell,src.skill),names=st.who.map(function(c){return '<span style="color:'+CLASS_COLOR[c.cls]+'">'+esc(c.name)+'</span>'}).join(", ");
+  if(st.state==="known")return '<span class="craft known">Craftable by '+names+'</span>';
+  if(st.state==="could")return '<span class="craft could">Could be crafted by '+names+'</span>';
+  return '<span class="craft none">No crafter on your account</span>';
+}
+function craftLabelText(src){
+  if(src.t!=="craft")return "";
+  var st=craftStatus(src.spell,src.skill),names=st.who.map(function(c){return c.name}).join(", ");
+  return st.state==="known"?"craftable by "+names:st.state==="could"?"could be crafted by "+names:"no crafter yet";
+}
+/* Recipes wanted by any character's plan (pieces still needed) */
+function wantedRecipes(){
+  var map={};
+  S.chars.forEach(function(c){(c.gear.pieces||[]).forEach(function(p){if(p.have||p.src.t!=="craft")return;
+    var r=map[p.src.spell]||(map[p.src.spell]={spell:p.src.spell,skill:p.src.skill,makes:{type:p.idType,id:p.id},wanted:[]});
+    r.wanted.push({c:c,p:p})})});
+  return Object.keys(map).map(function(k){return map[k]});
 }
 function countText(g){return [g.items?g.items+" item"+(g.items===1?"":"s"):"",g.ench?g.ench+" enchant"+(g.ench===1?"":"s"):""].filter(Boolean).join(" + ")}
 
@@ -646,13 +692,13 @@ var COLS=["record","order","name","surname","class","race","gender","purpose","s
   "first_aid","fishing","cooking","honor_rank","honor_rank_goal"];
 var TCOL={};TOGGLE_IDS.forEach(function(id){TCOL[id]=BY_ID[id].name.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"")});
 var ACOLS=["notes","faction","ruleset"];
-var GCOLS=["gear_link","gear_sources","gear_have","zone_names"];
+var GCOLS=["gear_link","gear_sources","gear_have","zone_names","recipes_known","recipe_skills"];
 function csvCell(v){v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function toCSV(S){
   var head=COLS.concat(TOGGLE_IDS.map(function(id){return TCOL[id]})).concat(ACOLS).concat(GCOLS);
   var rows=[head];
   var a=S.account;
-  var ar=head.map(function(){return ""});ar[0]="account";ar[2]=a.name;ar[head.indexOf("notes")]=a.notes;ar[head.indexOf("faction")]=a.faction;ar[head.indexOf("ruleset")]=a.ruleset;ar[head.indexOf("zone_names")]=Object.keys(a.zones||{}).length?JSON.stringify(a.zones):"";
+  var ar=head.map(function(){return ""});ar[0]="account";ar[2]=a.name;ar[head.indexOf("notes")]=a.notes;ar[head.indexOf("faction")]=a.faction;ar[head.indexOf("ruleset")]=a.ruleset;ar[head.indexOf("zone_names")]=Object.keys(a.zones||{}).length?JSON.stringify(a.zones):"";ar[head.indexOf("recipe_skills")]=Object.keys(a.recipeSkill||{}).length?JSON.stringify(a.recipeSkill):"";
   rows.push(ar);
   S.chars.forEach(function(c,i){
     var r=["character",i+1,c.name,c.surname,c.cls,c.race,c.gender,c.purpose,c.spec1,c.spec2,c.hc?"yes":"",c.level,c.levelGoal];
@@ -660,7 +706,7 @@ function toCSV(S){
     r.push(c.firstAid,c.fishing,c.cooking,c.rank,c.rankGoal);
     TOGGLE_IDS.forEach(function(id){r.push(c.t[id]||"")});
     r.push(c.notes,c.race&&RACE[c.race]&&RACE[c.race].faction!=="Both"?"":c.faction,"");
-    r.push(c.gear.link,c.gear.src,c.gear.pieces.filter(function(p){return p.have}).map(function(p){return p.k+":"+p.slot}).join("|"),"");
+    r.push(c.gear.link,c.gear.src,c.gear.pieces.filter(function(p){return p.have}).map(function(p){return p.k+":"+p.slot}).join("|"),"",Object.keys(c.recipes).map(function(k){return k+":"+(c.recipes[k]?1:0)}).join("|"),"");
     rows.push(r);
   });
   return "﻿"+rows.map(function(r){return r.map(csvCell).join(",")}).join("\r\n")+"\r\n";
@@ -687,7 +733,7 @@ function fromCSV(text){
   rows.slice(1).forEach(function(r,n){
     function g(k){var i=idx[k];return i===undefined?"":String(r[i]==null?"":r[i]).trim()}
     var rec=g("record").toLowerCase();
-    if(rec==="account"){acct.name=g("name");acct.notes=g("notes");acct.faction=pickFrom(["Alliance","Horde"],g("faction"))||"";acct.ruleset=pickFrom(["Normal","PvP","Roleplaying","Hardcore"],g("ruleset"))||"Normal";try{var zn=g("zone_names");if(zn)acct.zones=JSON.parse(zn)||{}}catch(e){warnings.push("Saved zone names couldn't be read, so they were skipped.")}return}
+    if(rec==="account"){acct.name=g("name");acct.notes=g("notes");acct.faction=pickFrom(["Alliance","Horde"],g("faction"))||"";acct.ruleset=pickFrom(["Normal","PvP","Roleplaying","Hardcore"],g("ruleset"))||"Normal";try{var zn=g("zone_names");if(zn)acct.zones=JSON.parse(zn)||{}}catch(e){warnings.push("Saved zone names couldn't be read, so they were skipped.")}try{var rs=g("recipe_skills");if(rs)acct.recipeSkill=JSON.parse(rs)||{}}catch(e){warnings.push("Saved recipe skills couldn't be read, so they were skipped.")}return}
     if(!g("name"))return;
     var line=n+2;
     var cls=pickFrom(CLASS_NAMES,g("class"));if(!cls){warnings.push("Row "+line+": unknown class \""+g("class")+"\", set to Warrior.");cls="Warrior"}
@@ -706,6 +752,7 @@ function fromCSV(text){
     c.rank=num(g("honor_rank"),0,14,0);c.rankGoal=num(g("honor_rank_goal"),0,14,0);
     TOGGLE_IDS.forEach(function(id){var v=g(TCOL[id]).toLowerCase();if(v==="done"||v==="plan")c.t[id]=v});
     c.gear=blankGear();c.gear.link=g("gear_link");
+    c.recipes={};g("recipes_known").split("|").forEach(function(x){var m=/^(\d+):([01])$/.exec(x.trim());if(m)c.recipes[m[1]]=m[2]==="1"});
     if(g("gear_sources")){try{c.gear.src=g("gear_sources");c.gear.pieces=parseSources(c.gear.src);var hv=g("gear_have").split("|");c.gear.pieces.forEach(function(p){if(hv.indexOf(p.k+":"+p.slot)>=0)p.have=true})}catch(e){warnings.push("Row "+line+": the gear plan couldn't be read, so it was skipped.")}}
     chars.push({order:num(g("order"),0,9999,9999),i:chars.length,c:c});
   });
@@ -836,6 +883,7 @@ function renderChar(acc){
   h+='</div>';
   [["dng","Dungeons"],["raid","Raids"],["adv","Adventure"]].forEach(function(k){h+='<div class="block"><h3>'+k[1]+'</h3><div class="toggles">'+TOGGLES[k[0]].map(tgRow(c)).join("")+'</div></div>'});
   h+='<div class="block"><label class="field"><span class="label">Notes</span><textarea id="f-notes" data-f="notes" placeholder="Anything about this character: gear goals, who they craft for…">'+esc(c.notes)+'</textarea></label></div>';
+  h+=recipesHTML(c);
   h+='<div class="block" id="contrib">'+contribHTML(acc,c)+'</div>';
   h+='<div class="block"><div class="confirm">'+(ui.confirmDelete?'<span>Delete '+esc(fullName(c))+'?</span><button class="btn small danger" data-act="delYes">Delete</button><button class="btn small ghost" data-act="delNo">Keep</button>':'<button class="btn small danger" data-act="del">Delete character</button>')+'</div></div></div>';
   return '<div class="chars">'+pick+h+'</div>';
@@ -936,7 +984,7 @@ function renderGear(){
   function rows(list,label){
     return '<table class="gtable"><thead><tr><th>Slot</th><th>'+label+'</th><th>Where from</th><th>Status</th></tr></thead><tbody>'+
       list.sort(function(a,b){return GEAR_SLOTS.indexOf(a.slot)-GEAR_SLOTS.indexOf(b.slot)}).map(function(p){var i=g.pieces.indexOf(p);
-        return '<tr class="'+(p.have?'have':'')+'"><td class="slot">'+esc(p.slot)+'</td><td>'+whLink(p.idType,p.id)+'</td><td>'+srcHTML(p.src)+'</td>'+
+        return '<tr class="'+(p.have?'have':'')+'"><td class="slot">'+esc(p.slot)+'</td><td>'+whLink(p.idType,p.id)+'</td><td>'+srcHTML(p.src)+(p.src.t==="craft"?' '+craftLabelHTML(p.src):'')+'</td>'+
           '<td><button class="pill '+(p.have?'got':'short')+' tgl" data-ghave="'+i+'" aria-pressed="'+p.have+'">'+(p.have?'Have':'Need')+'</button></td></tr>'}).join("")+'</tbody></table>';
   }
   var haveN=gearP.filter(function(p){return p.have}).length;
@@ -975,11 +1023,9 @@ function groupHTML(g,gi,acct){
       '<a href="'+WH+'zone='+st.zone+'" target="_blank" rel="noopener">Look it up</a></div>';
   }
   h+='<ul class="gitems">'+g.entries.sort(function(a,b){return GEAR_SLOTS.indexOf(a.p.slot)-GEAR_SLOTS.indexOf(b.p.slot)}).map(function(e){var p=e.p;
-    var where=st.cat==="craft"?'':srcBrief(p.src);
+    var where=st.cat==="craft"?craftLabelHTML(p.src):srcBrief(p.src);
     return '<li>'+(acct?'<span class="who">'+dot(e.c.cls)+esc(e.c.name)+'</span>':'')+'<span class="slot">'+esc(p.slot)+(p.k==="e"?' enchant':'')+'</span>'+whLink(p.idType,p.id)+(where?' <span class="muted">— '+where+'</span>':'')+'</li>'}).join("")+'</ul>';
   if(st.cat==="craft"){
-    var cr=crafters(st.skill);
-    h+='<p class="note"><b>Can make:</b> '+(cr.length?cr.map(function(o){return esc(o.c.name)+' ('+o.x.skill+(o.x.goal>o.x.skill?'→'+o.x.goal:'')+')'}).join(", "):'<span class="warn">nobody on your account has '+esc(SKILLS[st.skill]||"this profession")+'</span>')+'</p>';
     var rk=Object.keys(g.reag);
     if(rk.length)h+='<p class="note mats"><b>Materials:</b> '+rk.sort(function(a,b){return g.reag[b]-g.reag[a]}).map(function(id){return whLink("item",id)+' <span class="num">×'+g.reag[id]+'</span>'}).join(", ")+'</p>';
   }
@@ -998,6 +1044,28 @@ function srcBrief(src){
   }
 }
 /* ---- Shopping list (Gear sub-tab): concise cards, one per category ---- */
+function recipesHTML(c){
+  var mine=wantedRecipes().filter(function(r){return profOf(c,r.skill)});
+  var profs=allProfs(c).filter(function(x){return !x.drop&&CRAFT_NAMES.indexOf(x.p)>=0});
+  if(!mine.length){
+    if(!profs.length)return "";
+    return '<div class="block"><h3>Recipes wanted</h3><p class="note">No gear plan on your account needs a recipe from '+esc(profs.map(function(x){return x.p}).join(" or "))+' yet. Recipes appear here when an imported plan includes something this character could craft.</p></div>';
+  }
+  mine.sort(function(a,b){return (SKILLS[a.skill]||"").localeCompare(SKILLS[b.skill]||"")||a.spell-b.spell});
+  var h='<div class="block"><div class="sechead" style="margin:0"><h3>Recipes wanted</h3><span class="note">Gear plans on your account need these. Confirm which ones '+esc(c.name)+' knows.</span></div><div class="recipes">';
+  mine.forEach(function(r){
+    var x=profOf(c,r.skill),req=recipeReq(r.spell),low=x.skill<Math.max(req,1),v=c.recipes[r.spell];
+    var want=r.wanted.map(function(w){return '<span style="color:'+CLASS_COLOR[w.c.cls]+'">'+esc(w.c.name)+'</span> '+esc(w.p.slot)+(w.p.k==="e"?' enchant':'')}).join(", ");
+    h+='<div class="recipe'+(low?' low':'')+'"><div class="rmain"><div>'+whLink(r.makes.type,r.makes.id)+(r.makes.type!=="spell"?' <span class="muted">· '+whLink("spell",r.spell)+'</span>':'')+'</div>'+
+      '<div class="note">'+esc(SKILLS[r.skill]||"")+' · wanted by '+want+'</div></div>'+
+      '<label class="rreq"><span class="label">Needs skill</span><input type="number" inputmode="numeric" min="1" max="300" id="rq-'+r.spell+'" data-rreq="'+r.spell+'" value="'+(req||"")+'" placeholder="?"></label>'+
+      (low?'<span class="note warn rlow">Skill too low ('+x.skill+(req?' / '+req:'')+')</span>':
+        '<span class="seg" role="group" aria-label="Does '+esc(c.name)+' know this recipe?">'+
+        [["","Not checked","n"],["1","Known","d"],["0","Not known","p"]].map(function(o){var on=o[0]===""?(v===undefined):o[0]==="1"?v===true:v===false;
+          return '<button data-rk="'+r.spell+'|'+o[0]+'" class="'+o[2]+'" aria-pressed="'+on+'">'+o[1]+'</button>'}).join("")+'</span>')+'</div>';
+  });
+  return h+'</div><p class="note">"Needs skill" is shared by all your characters. Fill it in from the recipe\'s Wowhead page, and anyone below that skill is left out of the shopping list.</p></div>';
+}
 function shopBody(acct,c){
   var chars=acct?S.chars:[c];
   if(!chars.some(function(x){return x.gear.pieces.length}))return '<div class="panel empty">'+(acct?'No gear plans imported yet.':esc(c.name)+' has no gear plan yet.')+' Import one from Wowhead in the <button class="linkbtn" data-gsub="plan">Gear planner</button>.</div>';
@@ -1012,10 +1080,9 @@ function shopBody(acct,c){
     h+='<section class="card scard"><h3>'+cat.name+'</h3><ol class="srows">';
     cat.groups.forEach(function(g){
       h+='<li><div class="sname"><b>'+esc(g.stop.name)+'</b> <span class="scount">'+shortCount(g)+'</span>';
-      if(g.stop.cat==="craft"){var cr=crafters(g.stop.skill);h+=' <span class="scount">· '+(cr.length?'made by '+cr.map(function(o){return esc(o.c.name)}).join(", "):'<span class="warn">no crafter yet</span>')+'</span>'}
       h+='</div><ul class="sitems">'+g.entries.sort(function(a,b){return GEAR_SLOTS.indexOf(a.p.slot)-GEAR_SLOTS.indexOf(b.p.slot)}).map(function(e){var p=e.p;
         return '<li'+(p.k==="e"?' class="ench"':'')+'>'+(acct?'<span class="swho">'+dot(e.c.cls)+'</span>':'')+
-          '<span class="sslot">'+esc(p.slot)+(p.k==="e"?' ench':'')+'</span>'+whLink(p.idType,p.id)+
+          '<span class="sslot">'+esc(p.slot)+(p.k==="e"?' ench':'')+'</span><span class="sname2">'+whLink(p.idType,p.id)+(p.src.t==="craft"?craftLabelHTML(p.src):'')+'</span>'+
           '<button class="stick" data-shave="'+e.c.id+'|'+e.c.gear.pieces.indexOf(p)+'" title="Mark as Have" aria-label="Mark '+esc(p.slot)+' as Have">✓</button></li>'}).join("")+'</ul></li>';
     });
     h+='</ol></section>';
@@ -1029,9 +1096,8 @@ function shoppingTextCompact(L,acct,title){
     out.push("",cat.name.toUpperCase());
     cat.groups.forEach(function(g,gi){
       var extra="";
-      if(g.stop.cat==="craft"){var cr=crafters(g.stop.skill);extra=" — "+(cr.length?"made by "+cr.map(function(o){return o.c.name}).join(", "):"no crafter yet")}
       out.push((gi+1)+". "+g.stop.name+" ("+shortCount(g)+")"+extra);
-      g.entries.forEach(function(e){out.push("   "+(acct?e.c.name+" · ":"")+e.p.slot+(e.p.k==="e"?" enchant":"")+": "+textName(e.p.idType,e.p.id))});
+      g.entries.forEach(function(e){out.push("   "+(acct?e.c.name+" · ":"")+e.p.slot+(e.p.k==="e"?" enchant":"")+": "+textName(e.p.idType,e.p.id)+(e.p.src.t==="craft"?" ("+craftLabelText(e.p.src)+")":""))});
     });
   });
   return out.join("\n")+"\n";
@@ -1044,12 +1110,10 @@ function shoppingText(L,acct,title){
       var who=acct?" · "+Object.keys(g.chars).map(function(id){var c=charById(id);return c?c.name+" "+g.chars[id]:""}).join(", "):"";
       out.push((gi+1)+". "+g.stop.name+" — "+countText(g)+who);
       g.entries.forEach(function(e){var p=e.p;
-        var where=g.stop.cat==="craft"?"":" — "+(p.src.t==="drop"?textName("npc",p.src.npc):p.src.t==="vendor"?moneyText(p.src.cost):p.src.t==="zonedrop"?"zone drop":p.src.t==="quest"?"quest: "+textName("quest",p.src.quest):srcText(p.src));
+        var where=g.stop.cat==="craft"?" — "+craftLabelText(p.src):" — "+(p.src.t==="drop"?textName("npc",p.src.npc):p.src.t==="vendor"?moneyText(p.src.cost):p.src.t==="zonedrop"?"zone drop":p.src.t==="quest"?"quest: "+textName("quest",p.src.quest):srcText(p.src));
         out.push("   "+(acct?e.c.name+" · ":"")+p.slot+(p.k==="e"?" enchant":"")+": "+textName(p.idType,p.id)+where);
       });
       if(g.stop.cat==="craft"){
-        var cr=crafters(g.stop.skill);
-        out.push("   Can make: "+(cr.length?cr.map(function(o){return o.c.name+" ("+o.x.skill+(o.x.goal>o.x.skill?"→"+o.x.goal:"")+")"}).join(", "):"nobody yet"));
         var rk=Object.keys(g.reag);
         if(rk.length)out.push("   Materials: "+rk.sort(function(a,b){return g.reag[b]-g.reag[a]}).map(function(id){return textName("item",id)+" ×"+g.reag[id]}).join(", "));
       }
@@ -1151,6 +1215,7 @@ document.addEventListener("click",function(e){
   if(t.dataset.shave){var sp=t.dataset.shave.split("|"),sc2=charById(sp[0]),spc=sc2&&sc2.gear.pieces[+sp[1]];
     if(spc){spc.have=true;ui.shopCopyMsg="";ui.shopUndo={cid:sc2.id,i:+sp[1],label:(ui.gearView==="acct"?sc2.name+" · ":"")+spc.slot+(spc.k==="e"?" enchant":"")+" ("+textName(spc.idType,spc.id)+")"};changed()}return}
   if(t.dataset.ghave!==undefined){var gc=charById(S.sel);if(!gc)return;var gp=gc.gear.pieces[+t.dataset.ghave];if(gp){gp.have=!gp.have;ui.gearCopyMsg="";changed()}return}
+  if(t.dataset.rk){var rc=charById(S.sel),rp=t.dataset.rk.split("|");if(!rc)return;if(rp[1]==="")delete rc.recipes[rp[0]];else rc.recipes[rp[0]]=rp[1]==="1";changed();return}
   if(t.dataset.tg){var c=charById(S.sel);if(!c)return;if(t.dataset.v==="none")delete c.t[t.dataset.tg];else c.t[t.dataset.tg]=t.dataset.v;changed();return}
   var a=t.dataset.act;if(!a)return;
   if(a==="add")addChar();
@@ -1197,6 +1262,7 @@ function handleField(el,final){
   if(el.dataset.gchar){S.sel=el.value;ui.gearMsg="";ui.gearCopyMsg="";ui.shopCopyMsg="";ui.shopUndo=null;ui.gearImportOpen=false;render();return}
   if(el.dataset.glink){var gl=charById(S.sel);if(gl){gl.gear.link=el.value.trim();if(final)changed();else scheduleSave()}return}
   if(el.id==="g-src")return;
+  if(el.dataset.rreq){if(!final)return;S.account.recipeSkill=S.account.recipeSkill||{};var rv=num(el.value,0,300,0);if(rv)S.account.recipeSkill[el.dataset.rreq]=rv;else delete S.account.recipeSkill[el.dataset.rreq];changed();return}
   if(el.dataset.zname||el.dataset.ztype){if(!final)return;var zid=el.dataset.zname||el.dataset.ztype;S.account.zones=S.account.zones||{};var zo=S.account.zones[zid]||{n:"",t:"W"};
     if(el.dataset.zname)zo.n=el.value.trim();else zo.t=el.value;
     if(zo.n)S.account.zones[zid]=zo;else if(el.dataset.ztype){S.account.zones[zid]=zo}else delete S.account.zones[zid];changed();return}
