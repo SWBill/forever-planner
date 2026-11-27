@@ -221,6 +221,25 @@ table.grid{border-collapse:separate;border-spacing:4px;min-width:100%}
 .preview{border-radius:8px;background:var(--sunk);padding:10px 12px;font-size:.88rem}
 code{font-size:.85em;background:var(--sunk);padding:1px 5px;border-radius:4px}
 footer{font-size:.8rem;color:var(--muted)}
+/* Shopping list tab */
+.shop.compact .sechead{margin-bottom:6px}
+.scat{margin-top:14px}
+.scat>h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:var(--body);font-weight:700;margin-bottom:4px}
+.srows{margin:0;padding:0 0 0 1.6rem;display:flex;flex-direction:column}
+.srows>li{padding:7px 0;border-bottom:1px solid var(--line)}
+.srows>li::marker{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.srows>li:last-child{border-bottom:0}
+.sline{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between}
+.sname{min-width:0}
+.scount{font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:4px}
+.schips{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.schip{font:inherit;font-size:.78rem;font-weight:600;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:999px;padding:2px 9px;cursor:pointer;box-shadow:inset 3px 0 0 var(--cc,transparent)}
+.schip.ench{background:transparent;border-style:dashed;color:var(--muted)}
+.schip:hover{border-color:var(--ok);background:var(--ok-soft);color:var(--ok);text-decoration:line-through}
+.sextra{font-size:.8rem;color:var(--muted);margin-top:3px}
+.undo{background:var(--ok-soft);color:var(--ok);border-radius:8px;padding:6px 10px;margin-bottom:6px}
+.linkbtn{border:0;background:none;padding:0;font:inherit;color:var(--accent);text-decoration:underline;cursor:pointer}
+@media (max-width:560px){.schips{justify-content:flex-start}}
 /* Gear */
 .gbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:end;justify-content:space-between}
 .seg.big button{padding:8px 14px;font-size:.9rem}
@@ -292,6 +311,7 @@ a.wh:hover{text-decoration:underline}
       <button class="tab" role="tab" data-tab="roster" aria-selected="true">Roster</button>
       <button class="tab" role="tab" data-tab="char" aria-selected="false">Character</button>
       <button class="tab" role="tab" data-tab="gear" aria-selected="false">Gear</button>
+      <button class="tab" role="tab" data-tab="shop" aria-selected="false">Shopping list</button>
       <button class="tab" role="tab" data-tab="profs" aria-selected="false">Professions</button>
       <button class="tab" role="tab" data-tab="legacy" aria-selected="false">Legacy Points</button>
       <button class="tab" role="tab" data-tab="data" aria-selected="false">Account &amp; data</button>
@@ -534,7 +554,7 @@ function harvestNames(){
   });
   if(changedAny){try{localStorage.setItem(NAME_KEY,JSON.stringify(NAMES))}catch(e){}
     /* vendor and group titles are plain text, so redraw once to show the new names, unless the person is typing */
-    var ae=document.activeElement;if(tab==="gear"&&!(ae&&/^(TEXTAREA|INPUT|SELECT)$/.test(ae.tagName))){clearTimeout(harvestNames.t);harvestNames.t=setTimeout(function(){render()},50)}}
+    var ae=document.activeElement;if((tab==="gear"||tab==="shop")&&!(ae&&/^(TEXTAREA|INPUT|SELECT)$/.test(ae.tagName))){clearTimeout(harvestNames.t);harvestNames.t=setTimeout(function(){render()},50)}}
 }
 function whRefresh(){
   try{if(window.$WowheadPower&&window.$WowheadPower.refreshLinks)window.$WowheadPower.refreshLinks()}catch(e){}
@@ -699,7 +719,7 @@ function fromCSV(text){
 if(typeof module!=="undefined"&&typeof document==="undefined"){module.exports={toCSV:toCSV,fromCSV:fromCSV,account:account,exampleState:exampleState,normState:normState};return}
 
 /* ================= Rendering ================= */
-var S=null, tab="roster", ui={confirmDelete:false,importPreview:null,importError:"",confirmFresh:false,pasteOpen:false,exportMsg:"",gearView:"char",gearImportOpen:false,gearMsg:"",gearErr:false,gearCopyMsg:""};
+var S=null, tab="roster", ui={confirmDelete:false,importPreview:null,importError:"",confirmFresh:false,pasteOpen:false,exportMsg:"",gearView:"char",gearImportOpen:false,gearMsg:"",gearErr:false,gearCopyMsg:"",shopCopyMsg:"",shopUndo:null};
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]})}
 function dot(cls){return CLASS_ICON[cls]?'<img class="cicon" src="'+CLASS_ICON[cls]+'" alt="" style="--cc-ring:'+CLASS_COLOR[cls]+'">':'<i class="dot" style="background:'+CLASS_COLOR[cls]+'"></i>'}
@@ -974,6 +994,57 @@ function srcBrief(src){
     default:return srcHTML(src);
   }
 }
+/* ---- Shopping list tab: compact view of the gear shopping list ---- */
+function renderShop(){
+  if(!S.chars.length)return '<div class="panel empty">Add a character and import a gear plan on the Gear tab first.</div>';
+  var view=ui.gearView||"char",c=charById(S.sel)||S.chars[0],acct=view==="acct";
+  var h='<div class="stack"><div class="gbar"><div class="seg big" role="group" aria-label="View">'+
+    '<button data-gview="char" aria-pressed="'+(!acct)+'">One character</button><button data-gview="acct" aria-pressed="'+acct+'">Whole account</button></div>';
+  if(!acct)h+='<label class="field gpick"><span class="label">Character</span><select id="s-char" data-gchar="1">'+S.chars.map(function(x){return '<option value="'+x.id+'"'+(x.id===c.id?' selected':'')+'>'+esc(fullName(x))+' · '+x.cls+'</option>'}).join("")+'</select></label>';
+  h+='</div>';
+  var chars=acct?S.chars:[c];
+  if(!chars.some(function(x){return x.gear.pieces.length}))return h+'<div class="panel empty">'+(acct?'No gear plans imported yet.':esc(c.name)+' has no gear plan yet.')+' Import one from Wowhead on the <button class="linkbtn" data-tab="gear">Gear tab</button>.</div></div>';
+  var L=shoppingList(chars);
+  h+='<div class="panel shop compact"><div class="sechead"><div><h2>'+(acct?esc(S.account.name||"Account")+' shopping list':esc(fullName(c))+'\'s shopping list')+'</h2>'+
+    '<p class="note">'+(L.stops?'<b class="num">'+L.total+'</b> item'+(L.total===1?'':'s')+(L.totalE?' + <b class="num">'+L.totalE+'</b> enchant'+(L.totalE===1?'':'s'):'')+' from <b class="num">'+L.stops+'</b> place'+(L.stops===1?'':'s')+'. Tick a piece off when you get it.':'Everything is collected.')+'</p></div>'+
+    (L.stops?'<button class="btn small" data-act="shopCopy">Copy as text</button>':'')+'</div>';
+  if(ui.shopUndo)h+='<p class="note undo">'+esc(ui.shopUndo.label)+' marked as Have. <button class="linkbtn" data-act="shopUndo">Undo</button></p>';
+  if(ui.shopCopyMsg)h+='<p class="note">'+esc(ui.shopCopyMsg)+'</p><textarea id="shopTextOut" class="copyout" readonly hidden></textarea>';
+  L.cats.forEach(function(cat){
+    h+='<div class="scat"><h3>'+cat.name+'</h3><ol class="srows">';
+    cat.groups.forEach(function(g){
+      h+='<li><div class="sline"><span class="sname"><b>'+esc(g.stop.name)+'</b> <span class="scount">'+shortCount(g)+'</span></span><span class="schips">'+
+        g.entries.sort(function(a,b){return GEAR_SLOTS.indexOf(a.p.slot)-GEAR_SLOTS.indexOf(b.p.slot)}).map(function(e){
+          var lbl=(acct?e.c.name+' · ':'')+e.p.slot+(e.p.k==="e"?' ench':'');
+          return '<button class="schip'+(e.p.k==="e"?' ench':'')+'" data-shave="'+e.c.id+'|'+e.c.gear.pieces.indexOf(e.p)+'" title="'+esc(textName(e.p.idType,e.p.id)+' — click when you have it')+'"'+(acct?' style="--cc:'+CLASS_COLOR[e.c.cls]+'"':'')+'>'+esc(lbl)+'</button>'}).join("")+'</span></div>';
+      var extra=[];
+      if(g.stop.cat==="craft"){var cr=crafters(g.stop.skill);extra.push(cr.length?'Made by '+cr.map(function(o){return esc(o.c.name)}).join(", "):'<span class="warn">No crafter on your account</span>');
+        var rk=Object.keys(g.reag).sort(function(a,b){return g.reag[b]-g.reag[a]});
+        if(rk.length)extra.push(rk.slice(0,4).map(function(id){return whLink("item",id)+' ×'+g.reag[id]}).join(", ")+(rk.length>4?' <span class="muted">+'+(rk.length-4)+' more</span>':''))}
+      var ck=Object.keys(g.cost);
+      if(ck.length)extra.push(ck.map(function(k){return k==="gold"?esc(moneyText({copper:g.cost[k]})):g.cost[k]+' × '+whLink("currency",k.slice(1))}).join(", "));
+      if(extra.length)h+='<div class="sextra">'+extra.join(' · ')+'</div>';
+      h+='</li>';
+    });
+    h+='</ol></div>';
+  });
+  return h+'</div></div>';
+}
+function shortCount(g){return [g.items?g.items+(g.items===1?" item":" items"):"",g.ench?g.ench+" ench":""].filter(Boolean).join(" + ")}
+function shoppingTextCompact(L,acct,title){
+  var out=[title];
+  L.cats.forEach(function(cat){
+    out.push("",cat.name.toUpperCase());
+    cat.groups.forEach(function(g,gi){
+      var pieces=g.entries.map(function(e){return (acct?e.c.name+" ":"")+e.p.slot+(e.p.k==="e"?" ench":"")}).join(", ");
+      var extra="";
+      if(g.stop.cat==="craft"){var cr=crafters(g.stop.skill);extra=" — "+(cr.length?"made by "+cr.map(function(o){return o.c.name}).join(", "):"no crafter yet")}
+      var ck=Object.keys(g.cost);if(ck.length)extra+=" — "+ck.map(function(k){return k==="gold"?moneyText({copper:g.cost[k]}):g.cost[k]+" × "+textName("currency",k.slice(1))}).join(", ");
+      out.push((gi+1)+". "+g.stop.name+" ("+shortCount(g)+"): "+pieces+extra);
+    });
+  });
+  return out.join("\n")+"\n";
+}
 function shoppingText(L,acct,title){
   var out=[title,""];
   L.cats.forEach(function(cat){
@@ -1029,15 +1100,15 @@ function render(keepFocus){
   renderHeader(acc);
   document.querySelectorAll(".tab").forEach(function(t){t.setAttribute("aria-selected",t.dataset.tab===tab)});
   var ct=document.querySelector('.tab[data-tab="char"]'),sc=charById(S.sel);
-  var root=document.documentElement;if((tab==="char"||(tab==="gear"&&ui.gearView!=="acct"))&&sc){root.classList.add("classmode");root.style.setProperty("--cc",CLASS_COLOR[sc.cls])}else{root.classList.remove("classmode");root.style.removeProperty("--cc")}
+  var root=document.documentElement;if((tab==="char"||((tab==="gear"||tab==="shop")&&ui.gearView!=="acct"))&&sc){root.classList.add("classmode");root.style.setProperty("--cc",CLASS_COLOR[sc.cls])}else{root.classList.remove("classmode");root.style.removeProperty("--cc")}
   if(ct){if(sc){ct.style.setProperty('--tabc',CLASS_COLOR[sc.cls]);ct.innerHTML='Character<span class="tdot"></span>'}else{ct.style.removeProperty('--tabc');ct.textContent='Character'}}
   if(keepFocus){ /* typing: refresh only derived bits */
     var cb=$("contrib");if(cb){var c=charById(S.sel);if(c)cb.innerHTML=contribHTML(acc,c)}
     if(tab==="char"){document.querySelectorAll(".rc").forEach(function(b){var c=charById(b.dataset.sel);if(c){var n=b.querySelector(".n");if(n)n.textContent=fullName(c)}})}
     return}
   var v=$("view");
-  v.innerHTML=tab==="roster"?renderRoster(acc):tab==="char"?renderChar(acc):tab==="gear"?renderGear():tab==="profs"?renderProfs():tab==="legacy"?renderLegacy(acc):renderData();
-  if(tab==="gear")whRefresh();
+  v.innerHTML=tab==="roster"?renderRoster(acc):tab==="char"?renderChar(acc):tab==="gear"?renderGear():tab==="shop"?renderShop():tab==="profs"?renderProfs():tab==="legacy"?renderLegacy(acc):renderData();
+  if(tab==="gear"||tab==="shop")whRefresh();
 }
 
 /* ================= Persistence ================= */
@@ -1084,7 +1155,9 @@ document.addEventListener("click",function(e){
   if(t.dataset.tab){tab=t.dataset.tab;render();return}
   if(t.dataset.go){tab=t.dataset.go;render();return}
   if(t.dataset.sel){S.sel=t.dataset.sel;ui.confirmDelete=false;render();return}
-  if(t.dataset.gview){ui.gearView=t.dataset.gview;ui.gearCopyMsg="";render();return}
+  if(t.dataset.gview){ui.gearView=t.dataset.gview;ui.gearCopyMsg="";ui.shopCopyMsg="";ui.shopUndo=null;render();return}
+  if(t.dataset.shave){var sp=t.dataset.shave.split("|"),sc2=charById(sp[0]),spc=sc2&&sc2.gear.pieces[+sp[1]];
+    if(spc){spc.have=true;ui.shopCopyMsg="";ui.shopUndo={cid:sc2.id,i:+sp[1],label:(ui.gearView==="acct"?sc2.name+" · ":"")+spc.slot+(spc.k==="e"?" enchant":"")+" ("+textName(spc.idType,spc.id)+")"};changed()}return}
   if(t.dataset.ghave!==undefined){var gc=charById(S.sel);if(!gc)return;var gp=gc.gear.pieces[+t.dataset.ghave];if(gp){gp.have=!gp.have;ui.gearCopyMsg="";changed()}return}
   if(t.dataset.tg){var c=charById(S.sel);if(!c)return;if(t.dataset.v==="none")delete c.t[t.dataset.tg];else c.t[t.dataset.tg]=t.dataset.v;changed();return}
   var a=t.dataset.act;if(!a)return;
@@ -1100,6 +1173,11 @@ document.addEventListener("click",function(e){
       var ng=np.filter(function(p){return p.k==="g"}).length,ne=np.length-ng;
       ui.gearMsg="Imported "+ng+" item"+(ng===1?"":"s")+(ne?" and "+ne+" enchant"+(ne===1?"":"s"):"")+".";changed()}
     catch(err){ui.gearErr=true;ui.gearMsg=err.message||"Couldn't read that text.";render()}}
+  else if(a==="shopUndo"){var u=ui.shopUndo,uc=u&&charById(u.cid);if(uc&&uc.gear.pieces[u.i])uc.gear.pieces[u.i].have=false;ui.shopUndo=null;changed()}
+  else if(a==="shopCopy"){harvestNames();var sa=ui.gearView==="acct",scx=charById(S.sel);
+    var stxt=sa?shoppingTextCompact(shoppingList(S.chars),true,"Shopping list — "+(S.account.name||"whole account")):shoppingTextCompact(shoppingList([scx]),false,"Shopping list — "+fullName(scx));
+    var sshow=function(msg){ui.shopCopyMsg=msg;render();var o=$("shopTextOut");if(o){o.hidden=false;o.value=stxt;o.focus();o.select()}};
+    try{navigator.clipboard.writeText(stxt).then(function(){ui.shopCopyMsg="Copied.";render()},function(){sshow("Couldn't copy automatically. Select the text below and copy it.")})}catch(err){sshow("Select the text below and copy it.")}}
   else if(a==="gearCopy"){harvestNames();var acctV=t.dataset.acct==="1",gc3=charById(S.sel);
     var txt=acctV?shoppingText(shoppingList(S.chars),true,"SHOPPING LIST — "+(S.account.name||"whole account")):shoppingText(shoppingList([gc3]),false,"SHOPPING LIST — "+fullName(gc3));
     var showT=function(msg){ui.gearCopyMsg=msg;render();var o=$("gearTextOut");if(o){o.hidden=false;o.value=txt;o.focus();o.select()}};
@@ -1124,7 +1202,7 @@ document.addEventListener("change",function(e){
 });
 document.addEventListener("input",function(e){var el=e.target;if(el.tagName==="TEXTAREA"||el.type==="number"||(el.tagName==="INPUT"&&el.type!=="checkbox"&&el.type!=="file"))handleField(el,false)});
 function handleField(el,final){
-  if(el.dataset.gchar){S.sel=el.value;ui.gearMsg="";ui.gearCopyMsg="";ui.gearImportOpen=false;render();return}
+  if(el.dataset.gchar){S.sel=el.value;ui.gearMsg="";ui.gearCopyMsg="";ui.shopCopyMsg="";ui.shopUndo=null;ui.gearImportOpen=false;render();return}
   if(el.dataset.glink){var gl=charById(S.sel);if(gl){gl.gear.link=el.value.trim();if(final)changed();else scheduleSave()}return}
   if(el.id==="g-src")return;
   if(el.dataset.zname||el.dataset.ztype){if(!final)return;var zid=el.dataset.zname||el.dataset.ztype;S.account.zones=S.account.zones||{};var zo=S.account.zones[zid]||{n:"",t:"W"};
