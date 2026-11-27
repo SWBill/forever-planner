@@ -25,7 +25,7 @@
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
-.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.wrap{width:100%;max-width:2000px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 h1,h2,h3{font-family:var(--display);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.02em}
 h1{font-size:1.75rem}
 h2{font-size:1.1rem}
@@ -86,9 +86,10 @@ header.top .sub{margin-top:4px;color:var(--muted)}
 .rc .cicon{width:32px;height:32px;margin-right:0}
 .editor h2 .cicon{width:40px;height:40px;margin-right:10px}
 .roster .cicon{width:24px;height:24px}
-.banner-hero{position:relative;border-radius:14px;overflow:hidden;background:#1b7f92;aspect-ratio:1600/583;max-height:260px;width:100%}
+.banner-hero{position:relative;border-radius:14px;overflow:hidden;background:#1b7f92;aspect-ratio:1600/583;max-height:clamp(180px,22vw,420px);width:100%}
 .banner-hero img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
 @media (max-width:560px){.banner-hero{aspect-ratio:2/1}}
+@media (min-width:1600px){body{padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px))}}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;box-shadow:0 0 0 1px var(--line);flex:none}
 .pill{font-size:.72rem;font-weight:700;border-radius:99px;padding:2px 9px;white-space:nowrap;letter-spacing:.03em;display:inline-block}
 .pill.got{background:var(--ink);color:var(--bg)}
@@ -106,9 +107,10 @@ header.top .sub{margin-top:4px;color:var(--muted)}
 
 /* Roster table */
 .scroll{overflow-x:auto}
-table.roster{border-collapse:collapse;width:100%;min-width:900px;font-size:.9rem}
-.roster th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
-.roster td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.roster{border-collapse:collapse;width:100%;min-width:1040px;font-size:.9rem}
+.roster th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;font-weight:600;padding:8px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.roster td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.roster td:nth-child(3),.roster td:nth-child(4){white-space:nowrap}
 .roster tbody tr{cursor:pointer}
 .roster tbody tr:hover td{background:var(--sunk)}
 .roster tr[aria-current="true"] td{background:var(--accent-soft)}
