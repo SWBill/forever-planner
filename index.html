@@ -251,6 +251,17 @@ footer{font-size:.8rem;color:var(--muted)}
 .sname2{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:2px}
 .sname2 a.wh{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 .sname2 .craft{margin-left:4px}
+/* Character sub-tabs */
+.csum{color:var(--muted);font-size:.9rem;margin-top:-10px}
+.editor .subtabs{margin-top:-4px}
+.cview{display:flex;flex-direction:column;gap:18px}
+.cview>.block:first-child{border-top:0;padding-top:0}
+.cv-legacy{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));gap:16px;align-items:start}
+.cv-legacy>.block{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg);gap:8px}
+.cv-legacy>.block:first-child{border-top:1px solid var(--line);padding-top:14px}
+.cv-legacy>#contrib{order:-1;grid-column:1/-1;background:transparent;border:0;padding:0}
+.tbadge{display:inline-block;margin-left:6px;font-size:.72rem;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--sunk);color:var(--muted)}
+.subtabs button[aria-selected="true"] .tbadge{background:var(--accent-soft);color:var(--accent)}
 /* Gear sub-tabs */
 .subtabs{display:inline-flex;gap:4px;background:var(--sunk);padding:4px;border-radius:12px;align-self:flex-start}
 .subtabs button{border:0;background:transparent;padding:8px 16px;border-radius:9px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
@@ -785,7 +796,7 @@ function fromCSV(text){
 if(typeof module!=="undefined"&&typeof document==="undefined"){module.exports={toCSV:toCSV,fromCSV:fromCSV,account:account,exampleState:exampleState,normState:normState};return}
 
 /* ================= Rendering ================= */
-var S=null, tab="roster", ui={confirmDelete:false,importPreview:null,importError:"",confirmFresh:false,pasteOpen:false,exportMsg:"",gearView:"char",gearImportOpen:false,gearMsg:"",gearErr:false,gearCopyMsg:"",shopCopyMsg:"",shopUndo:null,gearSub:"plan"};
+var S=null, tab="roster", ui={confirmDelete:false,importPreview:null,importError:"",confirmFresh:false,pasteOpen:false,exportMsg:"",gearView:"char",gearImportOpen:false,gearMsg:"",gearErr:false,gearCopyMsg:"",shopCopyMsg:"",shopUndo:null,gearSub:"plan",charSub:"info"};
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]})}
 function dot(cls){return CLASS_ICON[cls]?'<img class="cicon" src="'+CLASS_ICON[cls]+'" alt="" style="--cc-ring:'+CLASS_COLOR[cls]+'">':'<i class="dot" style="background:'+CLASS_COLOR[cls]+'"></i>'}
@@ -869,6 +880,15 @@ function renderChar(acc){
   var rp=raceProblem(c);
   var races=RACES.map(function(r){return [r[0],r[0]+(r[1]==="Both"?"":" ("+r[1]+")")]});
   var h='<div class="panel editor classed" style="--cc:'+CLASS_COLOR[c.cls]+'"><div class="sechead" style="margin:0"><h2>'+dot(c.cls)+esc(fullName(c))+'</h2><span class="muted">#'+(S.chars.indexOf(c)+1)+' in levelling order</span></div>';
+  var cs=ui.charSub||"info",kk=contributions(acc,c);
+  var toCheck=wantedRecipes().filter(function(r){var x=profOf(c,r.skill);return x&&x.skill>=Math.max(recipeReq(r.spell),1)&&c.recipes[r.spell]===undefined}).length;
+  var profSum=allProfs(c).filter(function(x){return !x.drop}).map(function(x){return x.p+' '+x.skill+(x.goal>x.skill?'→'+x.goal:'')});
+  h+='<p class="csum">'+esc([c.race,c.purpose,'Level '+(c.level||'—')+(c.levelGoal>c.level?' → '+c.levelGoal:'')].filter(Boolean).join(' · '))+(profSum.length?' · '+esc(profSum.join(', ')):'')+'</p>';
+  h+='<div class="subtabs" role="tablist" aria-label="Character sections">'+
+    '<button role="tab" data-csub="info" aria-selected="'+(cs==="info")+'">Details</button>'+
+    '<button role="tab" data-csub="profs" aria-selected="'+(cs==="profs")+'">Professions'+(toCheck?' <span class="tbadge">'+toCheck+' to check</span>':'')+'</button>'+
+    '<button role="tab" data-csub="legacy" aria-selected="'+(cs==="legacy")+'">Legacy <span class="tbadge num">'+kk.done.length+(kk.plan.length?' +'+kk.plan.length:'')+'</span></button></div><div class="cview cv-'+cs+'">';
+  if(cs==="info"){
   h+='<div class="fields">'+fText("f-name","name","Name",c.name)+fText("f-surname","surname","Surname",c.surname,"","Optional")+
     '<label class="field"><span class="label">Class</span><select id="f-cls" data-f="cls">'+opts(CLASS_NAMES,c.cls)+'</select></label>'+
     '<label class="field"><span class="label">Race</span><select id="f-race" data-f="race">'+opts(races,c.race,"—")+'</select></label>'+
@@ -880,7 +900,9 @@ function renderChar(acc){
   h+='<datalist id="dl-purpose">'+PURPOSES.map(function(p){return '<option value="'+p+'">'}).join("")+'</datalist><datalist id="dl-spec">'+SPECS[c.cls].map(function(p){return '<option value="'+p+'">'}).join("")+'</datalist>';
   if(rp)h+='<p class="note warn">'+esc(rp)+'</p>';
   h+='<label class="check"><input type="checkbox" id="f-hc" data-f="hc"'+(c.hc?' checked':'')+'> Hardcore character</label>';
+  }
 
+  if(cs==="profs"){
   h+='<div class="block"><div class="sechead" style="margin:0"><h3>Professions</h3><span class="note">Crafting skills give Legacy Points at 150, 225 and 300. Gathering doesn\'t.</span></div>';
   c.profs.forEach(function(p,i){var dis=p.p?'':' disabled';
     h+='<div class="prof"><label class="field"><span class="label">Profession '+(i+1)+'</span><select id="f-p'+i+'" data-pf="'+i+'" data-k="p"><option value="">None</option><optgroup label="Crafting">'+opts(CRAFT_NAMES,p.p)+'</optgroup><optgroup label="Gathering">'+opts(GATHER,p.p)+'</optgroup></select></label>'+
@@ -895,7 +917,9 @@ function renderChar(acc){
   var total=allProfs(c).length;if(total>2)h+='<p class="note">'+esc(c.name)+' trains <b>'+total+'</b> professions over its life: '+esc(allProfs(c).map(function(x){return x.p+(x.drop?" (dropped at 60)":x.after?" (from 60)":"")}).join(", "))+'.</p>';
   if(c.profs[0].p&&c.profs[0].p===c.profs[1].p)h+='<p class="note warn">Both slots have the same profession.</p>';
   h+='<div class="fields">'+SECONDARY.map(function(s){return '<label class="field"><span class="label">'+s[1]+'</span><select id="f-'+s[0]+'" data-f="'+s[0]+'">'+opts([["","Not planned"],["Levelling","Levelling"],["Max","Max"]],c[s[0]])+'</select></label>'}).join("")+'</div></div>';
+  }
 
+  if(cs==="legacy"){
   h+='<div class="block"><h3>PvP</h3>';
   if(c.hc)h+='<p class="note">PvP Legacy challenges can\'t be completed on Hardcore.</p>';
   else{var ro=[];for(var r=0;r<=14;r++)ro.push([String(r),r?"Rank "+r:"Unranked"]);
@@ -903,10 +927,12 @@ function renderChar(acc){
     h+='<div class="toggles">'+TOGGLES.pvp.map(tgRow(c)).join("")+'</div>'}
   h+='</div>';
   [["dng","Dungeons"],["raid","Raids"],["adv","Adventure"]].forEach(function(k){h+='<div class="block"><h3>'+k[1]+'</h3><div class="toggles">'+TOGGLES[k[0]].map(tgRow(c)).join("")+'</div></div>'});
-  h+='<div class="block"><label class="field"><span class="label">Notes</span><textarea id="f-notes" data-f="notes" placeholder="Anything about this character: gear goals, who they craft for…">'+esc(c.notes)+'</textarea></label></div>';
-  h+=recipesHTML(c);
-  h+='<div class="block" id="contrib">'+contribHTML(acc,c)+'</div>';
-  h+='<div class="block"><div class="confirm">'+(ui.confirmDelete?'<span>Delete '+esc(fullName(c))+'?</span><button class="btn small danger" data-act="delYes">Delete</button><button class="btn small ghost" data-act="delNo">Keep</button>':'<button class="btn small danger" data-act="del">Delete character</button>')+'</div></div></div>';
+  }
+  if(cs==="info")h+='<div class="block"><label class="field"><span class="label">Notes</span><textarea id="f-notes" data-f="notes" placeholder="Anything about this character: gear goals, who they craft for…">'+esc(c.notes)+'</textarea></label></div>';
+  if(cs==="profs")h+=recipesHTML(c);
+  if(cs==="legacy")h+='<div class="block" id="contrib">'+contribHTML(acc,c)+'</div>';
+  if(cs==="info")h+='<div class="block"><div class="confirm">'+(ui.confirmDelete?'<span>Delete '+esc(fullName(c))+'?</span><button class="btn small danger" data-act="delYes">Delete</button><button class="btn small ghost" data-act="delNo">Keep</button>':'<button class="btn small danger" data-act="del">Delete character</button>')+'</div></div>';
+  h+='</div></div>'; /* close .cview and the editor panel */
   return '<div class="chars">'+pick+h+'</div>';
 }
 function tgRow(c){return function(t){return '<div class="tg"><span><b>'+t[1]+'</b><small>'+esc(t[2])+'</small></span>'+seg(t[0],c.t[t[0]])+'</div>'}}
@@ -1232,6 +1258,7 @@ document.addEventListener("click",function(e){
   if(t.dataset.tab){tab=t.dataset.tab;render();return}
   if(t.dataset.go){tab=t.dataset.go;render();return}
   if(t.dataset.sel){S.sel=t.dataset.sel;ui.confirmDelete=false;render();return}
+  if(t.dataset.csub){ui.charSub=t.dataset.csub;ui.confirmDelete=false;render();return}
   if(t.dataset.gsub){ui.gearSub=t.dataset.gsub;ui.gearCopyMsg="";ui.shopCopyMsg="";ui.shopUndo=null;render();return}
   if(t.dataset.gview){ui.gearView=t.dataset.gview;ui.gearCopyMsg="";ui.shopCopyMsg="";ui.shopUndo=null;render();return}
   if(t.dataset.shave){var sp=t.dataset.shave.split("|"),sc2=charById(sp[0]),spc=sc2&&sc2.gear.pieces[+sp[1]];
