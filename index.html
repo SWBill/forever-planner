@@ -6,6 +6,8 @@
 <meta name="description" content="Plan your WoW Forever account: characters, professions and Legacy Points.">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Forever Legacy Planner</title>
+<script>const whTooltips={colorLinks:true,iconizeLinks:true,renameLinks:true,iconSize:"small"};</script>
+<script src="https://wow.zamimg.com/js/tooltips.js" async></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap">
 <style>
@@ -219,6 +221,43 @@ table.grid{border-collapse:separate;border-spacing:4px;min-width:100%}
 .preview{border-radius:8px;background:var(--sunk);padding:10px 12px;font-size:.88rem}
 code{font-size:.85em;background:var(--sunk);padding:1px 5px;border-radius:4px}
 footer{font-size:.8rem;color:var(--muted)}
+/* Gear */
+.gbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:end;justify-content:space-between}
+.seg.big button{padding:8px 14px;font-size:.9rem}
+.seg.big button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.gpick{min-width:240px}
+.gimport{margin-top:16px;border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.steps{margin:0;padding-left:20px;color:var(--muted);font-size:.9rem;display:flex;flex-direction:column;gap:2px}
+#g-src{min-height:140px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem}
+table.gtable{border-collapse:collapse;width:100%;min-width:640px;font-size:.9rem}
+.gtable th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;font-weight:600;padding:7px 8px;border-bottom:1px solid var(--line)}
+.gtable td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.gtable td.slot{white-space:nowrap;font-weight:600;color:var(--muted);width:7rem}
+.gtable tr.have td:not(:last-child){opacity:.5}
+.gtable tr.have td:nth-child(2) a{text-decoration:line-through}
+.pill.tgl{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:.75rem;font-weight:700}
+.pill.tgl.got{border-color:var(--ink)}
+a.wh{text-decoration:none;font-weight:600}
+a.wh:hover{text-decoration:underline}
+.best{background:var(--sunk);border-radius:10px;padding:12px 14px;margin-bottom:16px}
+.best ol{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
+.gcat{margin-top:18px}
+.gcat>h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:var(--body);font-weight:700;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.ggroup{padding:10px 0 12px;border-bottom:1px dashed var(--line);display:flex;flex-direction:column;gap:6px}
+.ggroup:last-child{border-bottom:0}
+.ghead{display:flex;gap:10px;align-items:flex-start}
+.rank{flex:none;width:1.6rem;height:1.6rem;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:.8rem;font-weight:700}
+.gtitle{min-width:0}
+.gtitle b{font-size:1rem}
+.gitems{list-style:none;margin:0;padding:0 0 0 2.25rem;display:flex;flex-direction:column;gap:3px;font-size:.9rem}
+.gitems .slot{display:inline-block;min-width:6.5rem;color:var(--muted);font-weight:600;margin-right:6px}
+.gitems .who{display:inline-flex;align-items:center;min-width:7.5rem;font-weight:600;margin-right:6px}
+.gitems .who .cicon{width:18px;height:18px}
+.ggroup>.note{padding-left:2.25rem}
+.zname{margin-left:2.25rem;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--gold-soft);border:1px solid var(--gold);border-radius:8px;padding:8px 10px}
+.zname input,.zname select{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:5px 8px}
+.copyout{width:100%;min-height:160px;margin:8px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:8px}
+@media (max-width:560px){.gitems{padding-left:0}.ggroup>.note,.zname{padding-left:0;margin-left:0}.gitems .slot{min-width:0}}
 /* Whole-window class theme while a character is open in the Character tab */
 :root.classmode,:root.classmode body{background:color-mix(in srgb,var(--cc) 20%,var(--bg))}
 .classmode .panel,.classmode .stat,.classmode .rc:not([aria-current="true"]){background:color-mix(in srgb,var(--cc) 7%,var(--surface))}
@@ -252,6 +291,7 @@ footer{font-size:.8rem;color:var(--muted)}
     <div class="tabs" role="tablist" id="tabs">
       <button class="tab" role="tab" data-tab="roster" aria-selected="true">Roster</button>
       <button class="tab" role="tab" data-tab="char" aria-selected="false">Character</button>
+      <button class="tab" role="tab" data-tab="gear" aria-selected="false">Gear</button>
       <button class="tab" role="tab" data-tab="profs" aria-selected="false">Professions</button>
       <button class="tab" role="tab" data-tab="legacy" aria-selected="false">Legacy Points</button>
       <button class="tab" role="tab" data-tab="data" aria-selected="false">Account &amp; data</button>
@@ -259,7 +299,7 @@ footer{font-size:.8rem;color:var(--muted)}
     <section id="view" style="padding-top:18px"></section>
   </div>
 
-  <footer>Legacy challenge list from WoW Forever launch data: 65 challenges, 1 point each, 16 spendable per character at launch. Race and class combinations from Method. World of Warcraft, the WoW Forever logo and class icons are trademarks and artwork of Blizzard Entertainment, Inc., used under Blizzard's fan content terms. This is a free, unofficial fan tool, not made or endorsed by Blizzard. Sources: <a href="https://www.method.gg/wow-forever/the-fastest-way-to-get-legacy-points-in-wow-forever" target="_blank" rel="noopener">Method</a>, <a href="https://www.icy-veins.com/wow-forever/legacy-system" target="_blank" rel="noopener">Icy Veins</a>, <a href="https://www.wowhead.com/forever" target="_blank" rel="noopener">Wowhead</a>.</footer>
+  <footer>Legacy challenge list from WoW Forever launch data: 65 challenges, 1 point each, 16 spendable per character at launch. Race and class combinations from Method. Gear plans, item names, tooltips and sources from <a href="https://www.wowhead.com/forever/gear-planner" target="_blank" rel="noopener">Wowhead</a>. World of Warcraft, the WoW Forever logo and class icons are trademarks and artwork of Blizzard Entertainment, Inc., used under Blizzard's fan content terms. This is a free, unofficial fan tool, not made or endorsed by Blizzard. Sources: <a href="https://www.method.gg/wow-forever/the-fastest-way-to-get-legacy-points-in-wow-forever" target="_blank" rel="noopener">Method</a>, <a href="https://www.icy-veins.com/wow-forever/legacy-system" target="_blank" rel="noopener">Icy Veins</a>, <a href="https://www.wowhead.com/forever" target="_blank" rel="noopener">Wowhead</a>.</footer>
 </div>
 
 <script>
@@ -327,10 +367,10 @@ function blankAfter(){return {p:"",skill:0,goal:300}}
 function blankProf(){return {p:"",skill:0,goal:300,drop:false,after:blankAfter()}}
 function blankChar(o){
   var c={id:uid(),name:"New character",surname:"",cls:"Warrior",race:"",gender:"",purpose:"",spec1:"",spec2:"",hc:false,
-    faction:"",level:0,levelGoal:60,profs:[blankProf(),blankProf()],firstAid:"",fishing:"",cooking:"",rank:0,rankGoal:0,t:{},notes:""};
+    faction:"",level:0,levelGoal:60,profs:[blankProf(),blankProf()],firstAid:"",fishing:"",cooking:"",rank:0,rankGoal:0,t:{},notes:"",gear:blankGear()};
   if(o)for(var k in o)c[k]=o[k];return c;
 }
-function blankAccount(){return {name:"",faction:"",ruleset:"Normal",notes:""}}
+function blankAccount(){return {name:"",faction:"",ruleset:"Normal",notes:"",zones:{}}}
 function normChar(c){
   var b=blankChar();var out={};
   for(var k in b)out[k]=(c&&c[k]!==undefined&&c[k]!==null)?c[k]:b[k];
@@ -344,11 +384,12 @@ function normChar(c){
   ["name","surname","race","gender","purpose","spec1","spec2","notes"].forEach(function(k){out[k]=String(out[k]||"")});
   if(out.faction!=="Horde"&&out.faction!=="Alliance")out.faction="";
   if(!out.name)out.name="Unnamed";
+  out.gear=normGear(c&&c.gear);
   return out;
 }
 function normState(d){
   if(!d||!Array.isArray(d.chars))return null;
-  var a=Object.assign(blankAccount(),d.account||{});
+  var a=Object.assign(blankAccount(),d.account||{});if(!a.zones||typeof a.zones!=="object")a.zones={};
   var chars=d.chars.map(normChar);
   return {v:2,example:!!d.example,account:a,chars:chars,sel:chars.some(function(c){return c.id===d.sel})?d.sel:(chars[0]?chars[0].id:null)};
 }
@@ -398,18 +439,202 @@ function contributions(acc,c){
   return out;
 }
 
+/* ================= Gear: data ================= */
+/* Zone IDs as Wowhead uses them. Type: D dungeon, R raid, W world, C city/battleground */
+var ZONES={
+  2437:["Ragefire Chasm","D"],718:["Wailing Caverns","D"],1581:["The Deadmines","D"],209:["Shadowfang Keep","D"],719:["Blackfathom Deeps","D"],
+  717:["The Stockade","D"],721:["Gnomeregan","D"],491:["Razorfen Kraul","D"],796:["Scarlet Monastery","D"],722:["Razorfen Downs","D"],
+  1337:["Uldaman","D"],1176:["Zul'Farrak","D"],2100:["Maraudon","D"],1477:["The Temple of Atal'Hakkar","D"],1584:["Blackrock Depths","D"],
+  1583:["Blackrock Spire","D"],2557:["Dire Maul","D"],2057:["Scholomance","D"],2017:["Stratholme","D"],
+  2717:["Molten Core","R"],2159:["Onyxia's Lair","R"],2677:["Blackwing Lair","R"],1977:["Zul'Gurub","R"],3429:["Ruins of Ahn'Qiraj","R"],
+  3428:["Temple of Ahn'Qiraj","R"],3456:["Naxxramas","R"],
+  1:["Dun Morogh","W"],3:["Badlands","W"],4:["Blasted Lands","W"],8:["Swamp of Sorrows","W"],10:["Duskwood","W"],11:["Wetlands","W"],
+  12:["Elwynn Forest","W"],14:["Durotar","W"],15:["Dustwallow Marsh","W"],16:["Azshara","W"],17:["The Barrens","W"],28:["Western Plaguelands","W"],
+  33:["Stranglethorn Vale","W"],36:["Alterac Mountains","W"],38:["Loch Modan","W"],40:["Westfall","W"],41:["Deadwind Pass","W"],44:["Redridge Mountains","W"],
+  45:["Arathi Highlands","W"],46:["Burning Steppes","W"],47:["The Hinterlands","W"],51:["Searing Gorge","W"],85:["Tirisfal Glades","W"],
+  130:["Silverpine Forest","W"],139:["Eastern Plaguelands","W"],141:["Teldrassil","W"],148:["Darkshore","W"],215:["Mulgore","W"],
+  267:["Hillsbrad Foothills","W"],331:["Ashenvale","W"],357:["Feralas","W"],361:["Felwood","W"],400:["Thousand Needles","W"],405:["Desolace","W"],
+  406:["Stonetalon Mountains","W"],440:["Tanaris","W"],490:["Un'Goro Crater","W"],493:["Moonglade","W"],618:["Winterspring","W"],1377:["Silithus","W"],
+  1497:["Undercity","C"],1519:["Stormwind City","C"],1537:["Ironforge","C"],1637:["Orgrimmar","C"],1638:["Thunder Bluff","C"],1657:["Darnassus","C"],
+  2597:["Alterac Valley","C"],3277:["Warsong Gulch","C"],3358:["Arathi Basin","C"]
+};
+var SKILLS={164:"Blacksmithing",165:"Leatherworking",171:"Alchemy",197:"Tailoring",202:"Engineering",333:"Enchanting",185:"Cooking",129:"First Aid",356:"Fishing",186:"Mining",182:"Herbalism",393:"Skinning"};
+var GEAR_SLOTS=["Head","Neck","Shoulders","Back","Chest","Wrist","Hands","Waist","Legs","Feet","Ring 1","Ring 2","Trinket 1","Trinket 2","Main Hand","Off Hand","Ranged"];
+var GEAR_CATS=[["dng","Dungeons"],["raid","Raids"],["craft","Crafting"],["vendor","Vendors"],["rep","Reputation"],["quest","Quests"],["world","World drops"],["other","Other"]];
+var WH="https://www.wowhead.com/forever/";
+var NAME_KEY="forever-legacy-planner-names";
+var NAMES={};try{NAMES=JSON.parse(localStorage.getItem(NAME_KEY)||"{}")||{}}catch(e){NAMES={}}
+
+function blankGear(){return {link:"",src:"",pieces:[]}}
+function normGear(g){
+  g=g&&typeof g==="object"?g:{};
+  var out={link:String(g.link||""),src:String(g.src||""),pieces:[]};
+  if(Array.isArray(g.pieces))g.pieces.forEach(function(p){if(p&&p.slot&&p.id)out.pieces.push({k:p.k==="e"?"e":"g",slot:String(p.slot),idType:p.idType==="spell"?"spell":"item",id:+p.id||0,src:p.src||{t:"other",raw:""},have:!!p.have})});
+  return out;
+}
+
+/* Read Wowhead's Sources export (forum markup) into gear pieces */
+function parseSources(text){
+  text=String(text||"");
+  if(!/\[tr\]/i.test(text))throw new Error("That doesn't look like Wowhead's Sources export. In Wowhead's Gear Planner, open the Sources panel and copy its export, which starts with [tabs or [table.");
+  var pieces=[],section="g";
+  var tokens=text.split(/(\[tab name=[^\]]*\]|\[tr[^\]]*\][\s\S]*?\[\/tr\])/i);
+  tokens.forEach(function(tok){
+    var tm=/^\[tab name=([^\]]*)\]/i.exec(tok);
+    if(tm){section=/enchant/i.test(tm[1])?"e":"g";return}
+    if(!/^\[tr/i.test(tok))return;
+    var cells=[],re=/\[td\]([\s\S]*?)\[\/td\]/gi,m;
+    while((m=re.exec(tok)))cells.push(m[1].trim());
+    if(cells.length<3)return;
+    if(/^slot$/i.test(cells[0])){if(/enchant/i.test(cells[1]))section="e";return}
+    var obj=/\[(item|spell)=(\d+)\]/i.exec(cells[1]);if(!obj)return;
+    pieces.push({k:section,slot:cells[0],idType:obj[1].toLowerCase(),id:+obj[2],src:parseSource(cells[2]),have:false});
+  });
+  if(!pieces.length)throw new Error("No gear rows were found in that text. Check that you copied the whole Sources export.");
+  return pieces;
+}
+function parseSource(s){
+  var raw=s,m,cost=null;
+  var mc=/\[money currency=(\d+),(\d+)\]/i.exec(s);if(mc)cost={cur:+mc[1],amt:+mc[2]};
+  var mg=/\[money=(\d+)\]/i.exec(s);if(!cost&&mg)cost={copper:+mg[1]};
+  if((m=/^\[npc=(\d+)\]\s*(?:\(\[zone=(\d+)\]\))?/i.exec(s)))return {t:cost?"vendor":"drop",npc:+m[1],zone:m[2]?+m[2]:0,cost:cost,raw:raw};
+  if((m=/^\[spell=(\d+)\]\s*\(\[skill=(\d+)\]\)/i.exec(s))){
+    var reag=[],rr=/\[item=(\d+)\](?:\s*x(\d+))?/gi,r;
+    var tail=s.slice(s.indexOf(")")+1);
+    while((r=rr.exec(tail)))reag.push([+r[1],r[2]?+r[2]:1]);
+    return {t:"craft",spell:+m[1],skill:+m[2],reag:reag,raw:raw};
+  }
+  if((m=/zone drop\s*\(\[zone=(\d+)\]\)/i.exec(s)))return {t:"zonedrop",zone:+m[1],raw:raw};
+  if((m=/^\[quest=(\d+)\]\s*(?:\(\[zone=(\d+)\]\))?/i.exec(s)))return {t:"quest",quest:+m[1],zone:m[2]?+m[2]:0,raw:raw};
+  if((m=/\[faction=(\d+)\]/i.exec(s))){var st=/(Friendly|Honored|Revered|Exalted)/i.exec(s);return {t:"rep",faction:+m[1],standing:st?st[1]:"",cost:cost,raw:raw}}
+  if((m=/\[zone=(\d+)\]/i.exec(s)))return {t:"zonedrop",zone:+m[1],raw:raw};
+  return {t:"other",raw:raw};
+}
+
+/* Names, zones and links */
+function zoneInfo(id){
+  var o=S&&S.account&&S.account.zones&&S.account.zones[id];
+  if(o&&o.n)return {name:o.n,type:o.t||"W",known:true};
+  if(ZONES[id])return {name:ZONES[id][0],type:ZONES[id][1],known:true};
+  return {name:"Zone "+id,type:"W",known:false};
+}
+function nameOf(type,id){return NAMES[type+":"+id]||""}
+function fallbackName(type,id){return ({item:"Item ",spell:"Spell ",npc:"NPC ",quest:"Quest ",currency:"Currency ",faction:"Faction "}[type]||"")+id}
+function whLink(type,id){
+  var n=nameOf(type,id);
+  return '<a class="wh" href="'+WH+type+'='+id+'" target="_blank" rel="noopener" data-whn="'+type+':'+id+'">'+esc(n||fallbackName(type,id))+'</a>';
+}
+function textName(type,id){return nameOf(type,id)||fallbackName(type,id)}
+function harvestNames(){
+  var changedAny=false;
+  document.querySelectorAll("a[data-whn]").forEach(function(a){
+    var k=a.getAttribute("data-whn"),t=(a.textContent||"").replace(/\s+/g," ").trim();
+    var parts=k.split(":");
+    if(t&&t!==fallbackName(parts[0],parts[1])&&NAMES[k]!==t){NAMES[k]=t;changedAny=true}
+  });
+  if(changedAny){try{localStorage.setItem(NAME_KEY,JSON.stringify(NAMES))}catch(e){}
+    /* vendor and group titles are plain text, so redraw once to show the new names, unless the person is typing */
+    var ae=document.activeElement;if(tab==="gear"&&!(ae&&/^(TEXTAREA|INPUT|SELECT)$/.test(ae.tagName))){clearTimeout(harvestNames.t);harvestNames.t=setTimeout(function(){render()},50)}}
+}
+function whRefresh(){
+  try{if(window.$WowheadPower&&window.$WowheadPower.refreshLinks)window.$WowheadPower.refreshLinks()}catch(e){}
+  try{if(window.WH&&window.WH.Tooltips&&window.WH.Tooltips.refreshLinks)window.WH.Tooltips.refreshLinks()}catch(e){}
+  setTimeout(harvestNames,1500);setTimeout(harvestNames,5000);
+}
+function moneyText(cost){
+  if(!cost)return "";
+  if(cost.cur)return cost.amt+" × "+textName("currency",cost.cur);
+  var c=cost.copper,g=Math.floor(c/10000),s=Math.floor(c%10000/100),cc=c%100;
+  return [g?g+"g":"",s?s+"s":"",cc?cc+"c":""].filter(Boolean).join(" ")||"0c";
+}
+function moneyHTML(cost){
+  if(!cost)return "";
+  if(cost.cur)return '<span class="num">'+cost.amt+'</span> × '+whLink("currency",cost.cur);
+  return esc(moneyText(cost));
+}
+function srcHTML(src){
+  var z=src.zone?esc(zoneInfo(src.zone).name):"";
+  switch(src.t){
+    case "drop":return whLink("npc",src.npc)+(z?' <span class="muted">· '+z+'</span>':'');
+    case "vendor":return 'Vendor '+whLink("npc",src.npc)+(z?' <span class="muted">· '+z+'</span>':'')+' · '+moneyHTML(src.cost);
+    case "craft":return esc(SKILLS[src.skill]||("Skill "+src.skill))+' · '+whLink("spell",src.spell);
+    case "zonedrop":return 'Drops anywhere in '+z;
+    case "quest":return 'Quest '+whLink("quest",src.quest)+(z?' <span class="muted">· '+z+'</span>':'');
+    case "rep":return whLink("faction",src.faction)+(src.standing?' · '+esc(src.standing):'')+(src.cost?' · '+moneyHTML(src.cost):'');
+    default:return esc(String(src.raw||"Unknown source").replace(/\[\/?[a-z]+(=[^\]]*)?\]/gi,"").trim()||"Unknown source");
+  }
+}
+function srcText(src){
+  var z=src.zone?zoneInfo(src.zone).name:"";
+  switch(src.t){
+    case "drop":return textName("npc",src.npc);
+    case "vendor":return "Vendor "+textName("npc",src.npc)+" · "+moneyText(src.cost);
+    case "craft":return (SKILLS[src.skill]||("Skill "+src.skill))+" · "+textName("spell",src.spell);
+    case "zonedrop":return "Zone drop";
+    case "quest":return "Quest: "+textName("quest",src.quest);
+    case "rep":return textName("faction",src.faction)+(src.standing?" ("+src.standing+")":"");
+    default:return String(src.raw||"").replace(/\[\/?[a-z]+(=[^\]]*)?\]/gi,"").trim()||"Unknown source";
+  }
+}
+
+/* Which stop a piece belongs to: category + group */
+function stopOf(p){
+  var s=p.src;
+  if(s.t==="craft"){var sk=SKILLS[s.skill]||("Skill "+s.skill);return {cat:"craft",key:"s:"+s.skill,name:sk,skill:s.skill}}
+  if(s.t==="vendor"){var vz=s.zone?zoneInfo(s.zone).name:"";return {cat:"vendor",key:"v:"+s.npc,name:textName("npc",s.npc)+(vz?" ("+vz+")":""),npc:s.npc,zone:s.zone}}
+  if(s.t==="rep")return {cat:"rep",key:"f:"+s.faction,name:textName("faction",s.faction),faction:s.faction};
+  if(s.zone){
+    var zi=zoneInfo(s.zone);
+    var cat=zi.type==="D"?"dng":zi.type==="R"?"raid":(s.t==="quest"?"quest":"world");
+    return {cat:cat,key:"z:"+s.zone,name:zi.name,zone:s.zone,unknownZone:!zi.known};
+  }
+  if(s.t==="quest")return {cat:"quest",key:"q",name:"Quests"};
+  return {cat:"other",key:"o",name:"Other"};
+}
+/* Build the shopping list from characters' needed pieces */
+function shoppingList(chars){
+  var groups={};
+  chars.forEach(function(c){
+    (c.gear&&c.gear.pieces||[]).forEach(function(p){
+      if(p.have)return;
+      var st=stopOf(p),g=groups[st.cat+"|"+st.key];
+      if(!g)g=groups[st.cat+"|"+st.key]={stop:st,entries:[],items:0,ench:0,chars:{},reag:{},cost:{}};
+      g.entries.push({c:c,p:p});
+      if(p.k==="e")g.ench++;else g.items++;
+      g.chars[c.id]=(g.chars[c.id]||0)+1;
+      if(p.src.reag)p.src.reag.forEach(function(r){g.reag[r[0]]=(g.reag[r[0]]||0)+r[1]});
+      if(p.src.cost){var ck=p.src.cost.cur?"c"+p.src.cost.cur:"gold";g.cost[ck]=(g.cost[ck]||0)+(p.src.cost.cur?p.src.cost.amt:p.src.cost.copper)}
+    });
+  });
+  var list=Object.keys(groups).map(function(k){var g=groups[k];g.score=g.items+g.ench*0.5;return g});
+  var cats=GEAR_CATS.map(function(c){
+    var gs=list.filter(function(g){return g.stop.cat===c[0]}).sort(function(a,b){return b.score-a.score||Object.keys(b.chars).length-Object.keys(a.chars).length||a.stop.name.localeCompare(b.stop.name)});
+    return {key:c[0],name:c[1],groups:gs};
+  }).filter(function(c){return c.groups.length});
+  var best=list.filter(function(g){return g.stop.cat!=="other"}).sort(function(a,b){return b.score-a.score||a.stop.name.localeCompare(b.stop.name)}).slice(0,5);
+  var total=list.reduce(function(n,g){return n+g.items},0),totalE=list.reduce(function(n,g){return n+g.ench},0);
+  return {cats:cats,best:best,total:total,totalE:totalE,stops:list.length};
+}
+function crafters(skill){
+  var name=SKILLS[skill];if(!name)return [];
+  var out=[];S.chars.forEach(function(c){allProfs(c).forEach(function(x){if(x.p===name)out.push({c:c,x:x})})});
+  return out;
+}
+function countText(g){return [g.items?g.items+" item"+(g.items===1?"":"s"):"",g.ench?g.ench+" enchant"+(g.ench===1?"":"s"):""].filter(Boolean).join(" + ")}
+
 /* ================= CSV ================= */
 var COLS=["record","order","name","surname","class","race","gender","purpose","spec_1","spec_2","hardcore","level","level_goal",
   "profession_1","profession_1_skill","profession_1_goal","profession_1_drop","profession_1_replacement","profession_1_replacement_skill","profession_1_replacement_goal","profession_2","profession_2_skill","profession_2_goal","profession_2_drop","profession_2_replacement","profession_2_replacement_skill","profession_2_replacement_goal",
   "first_aid","fishing","cooking","honor_rank","honor_rank_goal"];
 var TCOL={};TOGGLE_IDS.forEach(function(id){TCOL[id]=BY_ID[id].name.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"")});
 var ACOLS=["notes","faction","ruleset"];
+var GCOLS=["gear_link","gear_sources","gear_have","zone_names"];
 function csvCell(v){v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function toCSV(S){
-  var head=COLS.concat(TOGGLE_IDS.map(function(id){return TCOL[id]})).concat(ACOLS);
+  var head=COLS.concat(TOGGLE_IDS.map(function(id){return TCOL[id]})).concat(ACOLS).concat(GCOLS);
   var rows=[head];
   var a=S.account;
-  var ar=head.map(function(){return ""});ar[0]="account";ar[2]=a.name;ar[head.indexOf("notes")]=a.notes;ar[head.indexOf("faction")]=a.faction;ar[head.indexOf("ruleset")]=a.ruleset;
+  var ar=head.map(function(){return ""});ar[0]="account";ar[2]=a.name;ar[head.indexOf("notes")]=a.notes;ar[head.indexOf("faction")]=a.faction;ar[head.indexOf("ruleset")]=a.ruleset;ar[head.indexOf("zone_names")]=Object.keys(a.zones||{}).length?JSON.stringify(a.zones):"";
   rows.push(ar);
   S.chars.forEach(function(c,i){
     var r=["character",i+1,c.name,c.surname,c.cls,c.race,c.gender,c.purpose,c.spec1,c.spec2,c.hc?"yes":"",c.level,c.levelGoal];
@@ -417,6 +642,7 @@ function toCSV(S){
     r.push(c.firstAid,c.fishing,c.cooking,c.rank,c.rankGoal);
     TOGGLE_IDS.forEach(function(id){r.push(c.t[id]||"")});
     r.push(c.notes,c.race&&RACE[c.race]&&RACE[c.race].faction!=="Both"?"":c.faction,"");
+    r.push(c.gear.link,c.gear.src,c.gear.pieces.filter(function(p){return p.have}).map(function(p){return p.k+":"+p.slot}).join("|"),"");
     rows.push(r);
   });
   return "﻿"+rows.map(function(r){return r.map(csvCell).join(",")}).join("\r\n")+"\r\n";
@@ -443,7 +669,7 @@ function fromCSV(text){
   rows.slice(1).forEach(function(r,n){
     function g(k){var i=idx[k];return i===undefined?"":String(r[i]==null?"":r[i]).trim()}
     var rec=g("record").toLowerCase();
-    if(rec==="account"){acct.name=g("name");acct.notes=g("notes");acct.faction=pickFrom(["Alliance","Horde"],g("faction"))||"";acct.ruleset=pickFrom(["Normal","PvP","Roleplaying","Hardcore"],g("ruleset"))||"Normal";return}
+    if(rec==="account"){acct.name=g("name");acct.notes=g("notes");acct.faction=pickFrom(["Alliance","Horde"],g("faction"))||"";acct.ruleset=pickFrom(["Normal","PvP","Roleplaying","Hardcore"],g("ruleset"))||"Normal";try{var zn=g("zone_names");if(zn)acct.zones=JSON.parse(zn)||{}}catch(e){warnings.push("Saved zone names couldn't be read, so they were skipped.")}return}
     if(!g("name"))return;
     var line=n+2;
     var cls=pickFrom(CLASS_NAMES,g("class"));if(!cls){warnings.push("Row "+line+": unknown class \""+g("class")+"\", set to Warrior.");cls="Warrior"}
@@ -461,6 +687,8 @@ function fromCSV(text){
     [["first_aid","firstAid"],["fishing","fishing"],["cooking","cooking"]].forEach(function(s){var v=g(s[0]);c[s[1]]=pickFrom(SEC_STATES,v)||(/^max/i.test(v)?"Max":(v?"Levelling":""))});
     c.rank=num(g("honor_rank"),0,14,0);c.rankGoal=num(g("honor_rank_goal"),0,14,0);
     TOGGLE_IDS.forEach(function(id){var v=g(TCOL[id]).toLowerCase();if(v==="done"||v==="plan")c.t[id]=v});
+    c.gear=blankGear();c.gear.link=g("gear_link");
+    if(g("gear_sources")){try{c.gear.src=g("gear_sources");c.gear.pieces=parseSources(c.gear.src);var hv=g("gear_have").split("|");c.gear.pieces.forEach(function(p){if(hv.indexOf(p.k+":"+p.slot)>=0)p.have=true})}catch(e){warnings.push("Row "+line+": the gear plan couldn't be read, so it was skipped.")}}
     chars.push({order:num(g("order"),0,9999,9999),i:chars.length,c:c});
   });
   chars.sort(function(a,b){return a.order-b.order||a.i-b.i});
@@ -471,7 +699,7 @@ function fromCSV(text){
 if(typeof module!=="undefined"&&typeof document==="undefined"){module.exports={toCSV:toCSV,fromCSV:fromCSV,account:account,exampleState:exampleState,normState:normState};return}
 
 /* ================= Rendering ================= */
-var S=null, tab="roster", ui={confirmDelete:false,importPreview:null,importError:"",confirmFresh:false,pasteOpen:false,exportMsg:""};
+var S=null, tab="roster", ui={confirmDelete:false,importPreview:null,importError:"",confirmFresh:false,pasteOpen:false,exportMsg:"",gearView:"char",gearImportOpen:false,gearMsg:"",gearErr:false,gearCopyMsg:""};
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]})}
 function dot(cls){return CLASS_ICON[cls]?'<img class="cicon" src="'+CLASS_ICON[cls]+'" alt="" style="--cc-ring:'+CLASS_COLOR[cls]+'">':'<i class="dot" style="background:'+CLASS_COLOR[cls]+'"></i>'}
@@ -650,6 +878,127 @@ function renderLegacy(acc){
 }
 
 /* ---- Account & data ---- */
+/* ---- Gear tab ---- */
+function renderGear(){
+  if(!S.chars.length)return '<div class="panel empty"><h2 style="margin-bottom:8px">No characters yet</h2><p style="margin-bottom:14px">Add a character first, then import its gear plan from Wowhead.</p><button class="btn primary" data-act="add">Add character</button></div>';
+  var view=ui.gearView||"char";
+  var c=charById(S.sel)||S.chars[0];
+  var h='<div class="stack"><div class="gbar"><div class="seg big" role="group" aria-label="View">'+
+    '<button data-gview="char" aria-pressed="'+(view==="char")+'">One character</button>'+
+    '<button data-gview="acct" aria-pressed="'+(view==="acct")+'">Whole account</button></div>';
+  if(view==="char")h+='<label class="field gpick"><span class="label">Character</span><select id="g-char" data-gchar="1">'+S.chars.map(function(x){return '<option value="'+x.id+'"'+(x.id===c.id?' selected':'')+'>'+esc(fullName(x))+' · '+x.cls+'</option>'}).join("")+'</select></label>';
+  h+='</div>';
+  if(view==="acct"){
+    var withGear=S.chars.filter(function(x){return x.gear.pieces.length});
+    if(!withGear.length)return h+'<div class="panel empty">No gear plans imported yet. Switch to <b>One character</b> and import a plan from Wowhead.</div></div>';
+    h+=shoppingHTML(shoppingList(S.chars),true)+'</div>';
+    return h;
+  }
+  var g=c.gear,hasGear=g.pieces.length>0;
+  /* Plan + import */
+  h+='<div class="panel"><div class="sechead"><div><h2>'+dot(c.cls)+esc(fullName(c))+'\'s gear plan</h2><p class="note">Plan the gear in Wowhead, then bring the list here to work out where to go.</p></div>'+
+    (hasGear?'<button class="btn small" data-act="gearImportToggle">'+(ui.gearImportOpen?'Hide import':'Re-import from Wowhead')+'</button>':'')+'</div>';
+  h+='<div class="row" style="align-items:end"><label class="field" style="flex:1;min-width:220px"><span class="label">Wowhead Gear Planner link</span><input id="g-link" data-glink="1" value="'+esc(g.link)+'" placeholder="https://www.wowhead.com/forever/gear-planner/…"></label>'+
+    (g.link?'<a class="btn" href="'+esc(/^https:\/\/(www\.)?wowhead\.com\//.test(g.link)?g.link:WH+'gear-planner')+'" target="_blank" rel="noopener">Open in Wowhead</a>':'<a class="btn" href="'+WH+'gear-planner" target="_blank" rel="noopener">Open Wowhead Gear Planner</a>')+'</div>';
+  if(!hasGear||ui.gearImportOpen){
+    h+='<div class="gimport"><h3>Import the gear list</h3><ol class="steps"><li>In Wowhead\'s Gear Planner, open the <b>Sources</b> panel.</li><li>Use its export to copy the table (it starts with <code>[tabs</code> or <code>[table</code>).</li><li>Paste it below and press <b>Import gear</b>.</li></ol>'+
+      '<label class="field"><span class="label">Wowhead Sources export</span><textarea id="g-src" placeholder="[tabs name=…][tab name=Gear][table …"></textarea></label>'+
+      '<div class="row"><button class="btn primary" data-act="gearImport">Import gear</button>'+(hasGear?'<span class="note">Pieces you\'ve marked as Have stay marked if they\'re still in the plan.</span>':'')+'</div>'+
+      (ui.gearMsg?'<p class="note '+(ui.gearErr?'warn':'')+'">'+esc(ui.gearMsg)+'</p>':'')+'</div>';
+  } else if(ui.gearMsg)h+='<p class="note" style="margin-top:10px">'+esc(ui.gearMsg)+'</p>';
+  h+='</div>';
+  if(!hasGear)return h+'</div>';
+  /* Gear table */
+  var gearP=g.pieces.filter(function(p){return p.k==="g"}),enchP=g.pieces.filter(function(p){return p.k==="e"});
+  function rows(list,label){
+    return '<table class="gtable"><thead><tr><th>Slot</th><th>'+label+'</th><th>Where from</th><th>Status</th></tr></thead><tbody>'+
+      list.sort(function(a,b){return GEAR_SLOTS.indexOf(a.slot)-GEAR_SLOTS.indexOf(b.slot)}).map(function(p){var i=g.pieces.indexOf(p);
+        return '<tr class="'+(p.have?'have':'')+'"><td class="slot">'+esc(p.slot)+'</td><td>'+whLink(p.idType,p.id)+'</td><td>'+srcHTML(p.src)+'</td>'+
+          '<td><button class="pill '+(p.have?'got':'short')+' tgl" data-ghave="'+i+'" aria-pressed="'+p.have+'">'+(p.have?'Have':'Need')+'</button></td></tr>'}).join("")+'</tbody></table>';
+  }
+  var haveN=gearP.filter(function(p){return p.have}).length;
+  h+='<div class="panel"><div class="sechead"><h2>Gear</h2><span class="muted num">'+haveN+' / '+gearP.length+' collected</span></div><div class="scroll">'+rows(gearP,"Item")+'</div>';
+  if(enchP.length)h+='<h3 style="margin:18px 0 8px">Enchants</h3><div class="scroll">'+rows(enchP,"Enchant")+'</div>';
+  h+='</div>';
+  h+=shoppingHTML(shoppingList([c]),false);
+  return h+'</div>';
+}
+function shoppingHTML(L,acct){
+  var h='<div class="panel shop"><div class="sechead"><div><h2>'+(acct?'Account shopping list':'Shopping list')+'</h2>'+
+    '<p class="note">'+(L.total+L.totalE?'<b class="num">'+L.total+'</b> item'+(L.total===1?'':'s')+(L.totalE?' and <b class="num">'+L.totalE+'</b> enchant'+(L.totalE===1?'':'s'):'')+' still needed from <b class="num">'+L.stops+'</b> place'+(L.stops===1?'':'s')+'. Each list starts with the stop that covers the most.':'Everything in the plan is marked as Have. Nice work.')+'</p></div>'+
+    (L.stops?'<button class="btn small" data-act="gearCopy" data-acct="'+(acct?1:0)+'">Copy as text</button>':'')+'</div>';
+  if(ui.gearCopyMsg)h+='<p class="note">'+esc(ui.gearCopyMsg)+'</p><textarea id="gearTextOut" class="copyout" readonly hidden></textarea>';
+  if(!L.stops)return h+'</div>';
+  if(L.best.length>1){
+    h+='<div class="best"><span class="label">Best next stops</span><ol>'+L.best.map(function(g){return '<li><b>'+esc(g.stop.name)+'</b> <span class="muted">'+countText(g)+(acct?' · '+Object.keys(g.chars).length+' character'+(Object.keys(g.chars).length===1?'':'s'):'')+'</span></li>'}).join("")+'</ol></div>';
+  }
+  L.cats.forEach(function(cat){
+    h+='<div class="gcat"><h3>'+cat.name+'</h3>';
+    cat.groups.forEach(function(g,gi){h+=groupHTML(g,gi,acct)});
+    h+='</div>';
+  });
+  return h+'</div>';
+}
+function groupHTML(g,gi,acct){
+  var st=g.stop;
+  var h='<div class="ggroup"><div class="ghead"><span class="rank num">'+(gi+1)+'</span><div class="gtitle"><b>'+esc(st.name)+'</b> <span class="muted">'+countText(g)+'</span>';
+  if(acct){h+='<div class="chips" style="margin-top:4px">'+Object.keys(g.chars).map(function(id){var c=charById(id);return c?'<span class="chip">'+dot(c.cls)+esc(c.name)+' '+g.chars[id]+'</span>':''}).join("")+'</div>'}
+  h+='</div></div>';
+  if(st.unknownZone){
+    var z=(S.account.zones&&S.account.zones[st.zone])||{};
+    h+='<div class="zname"><span class="note">Wowhead zone '+st.zone+' isn\'t in the planner yet. Name it once and it\'s remembered:</span>'+
+      '<input id="zn-'+st.zone+'" data-zname="'+st.zone+'" placeholder="Zone name" value="'+esc(z.n||"")+'">'+
+      '<select id="zt-'+st.zone+'" data-ztype="'+st.zone+'">'+opts([["D","Dungeon"],["R","Raid"],["W","Outdoors"]],z.t||"W")+'</select>'+
+      '<a href="'+WH+'zone='+st.zone+'" target="_blank" rel="noopener">Look it up</a></div>';
+  }
+  h+='<ul class="gitems">'+g.entries.sort(function(a,b){return GEAR_SLOTS.indexOf(a.p.slot)-GEAR_SLOTS.indexOf(b.p.slot)}).map(function(e){var p=e.p;
+    var where=st.cat==="craft"?'':srcBrief(p.src);
+    return '<li>'+(acct?'<span class="who">'+dot(e.c.cls)+esc(e.c.name)+'</span>':'')+'<span class="slot">'+esc(p.slot)+(p.k==="e"?' enchant':'')+'</span>'+whLink(p.idType,p.id)+(where?' <span class="muted">— '+where+'</span>':'')+'</li>'}).join("")+'</ul>';
+  if(st.cat==="craft"){
+    var cr=crafters(st.skill);
+    h+='<p class="note"><b>Can make:</b> '+(cr.length?cr.map(function(o){return esc(o.c.name)+' ('+o.x.skill+(o.x.goal>o.x.skill?'→'+o.x.goal:'')+')'}).join(", "):'<span class="warn">nobody on your account has '+esc(SKILLS[st.skill]||"this profession")+'</span>')+'</p>';
+    var rk=Object.keys(g.reag);
+    if(rk.length)h+='<p class="note mats"><b>Materials:</b> '+rk.sort(function(a,b){return g.reag[b]-g.reag[a]}).map(function(id){return whLink("item",id)+' <span class="num">×'+g.reag[id]+'</span>'}).join(", ")+'</p>';
+  }
+  var ck=Object.keys(g.cost);
+  if(ck.length)h+='<p class="note"><b>Total cost:</b> '+ck.map(function(k){return k==="gold"?esc(moneyText({copper:g.cost[k]})):'<span class="num">'+g.cost[k]+'</span> × '+whLink("currency",k.slice(1))}).join(", ")+'</p>';
+  return h+'</div>';
+}
+function srcBrief(src){
+  switch(src.t){
+    case "drop":return whLink("npc",src.npc);
+    case "vendor":return moneyHTML(src.cost);
+    case "zonedrop":return 'zone drop';
+    case "quest":return 'quest '+whLink("quest",src.quest);
+    case "rep":return (src.standing?esc(src.standing):'')+(src.cost?' · '+moneyHTML(src.cost):'');
+    default:return srcHTML(src);
+  }
+}
+function shoppingText(L,acct,title){
+  var out=[title,""];
+  L.cats.forEach(function(cat){
+    out.push(cat.name.toUpperCase());
+    cat.groups.forEach(function(g,gi){
+      var who=acct?" · "+Object.keys(g.chars).map(function(id){var c=charById(id);return c?c.name+" "+g.chars[id]:""}).join(", "):"";
+      out.push((gi+1)+". "+g.stop.name+" — "+countText(g)+who);
+      g.entries.forEach(function(e){var p=e.p;
+        var where=g.stop.cat==="craft"?"":" — "+(p.src.t==="drop"?textName("npc",p.src.npc):p.src.t==="vendor"?moneyText(p.src.cost):p.src.t==="zonedrop"?"zone drop":p.src.t==="quest"?"quest: "+textName("quest",p.src.quest):srcText(p.src));
+        out.push("   "+(acct?e.c.name+" · ":"")+p.slot+(p.k==="e"?" enchant":"")+": "+textName(p.idType,p.id)+where);
+      });
+      if(g.stop.cat==="craft"){
+        var cr=crafters(g.stop.skill);
+        out.push("   Can make: "+(cr.length?cr.map(function(o){return o.c.name+" ("+o.x.skill+(o.x.goal>o.x.skill?"→"+o.x.goal:"")+")"}).join(", "):"nobody yet"));
+        var rk=Object.keys(g.reag);
+        if(rk.length)out.push("   Materials: "+rk.sort(function(a,b){return g.reag[b]-g.reag[a]}).map(function(id){return textName("item",id)+" ×"+g.reag[id]}).join(", "));
+      }
+      var ck=Object.keys(g.cost);
+      if(ck.length)out.push("   Total cost: "+ck.map(function(k){return k==="gold"?moneyText({copper:g.cost[k]}):g.cost[k]+" × "+textName("currency",k.slice(1))}).join(", "));
+    });
+    out.push("");
+  });
+  return out.join("\n").trim()+"\n";
+}
+
 function renderData(){
   var a=S.account;
   var h='<div class="stack"><div class="panel"><div class="sechead"><h2>Account</h2></div><div class="fields">'+
@@ -680,14 +1029,15 @@ function render(keepFocus){
   renderHeader(acc);
   document.querySelectorAll(".tab").forEach(function(t){t.setAttribute("aria-selected",t.dataset.tab===tab)});
   var ct=document.querySelector('.tab[data-tab="char"]'),sc=charById(S.sel);
-  var root=document.documentElement;if(tab==="char"&&sc){root.classList.add("classmode");root.style.setProperty("--cc",CLASS_COLOR[sc.cls])}else{root.classList.remove("classmode");root.style.removeProperty("--cc")}
+  var root=document.documentElement;if((tab==="char"||(tab==="gear"&&ui.gearView!=="acct"))&&sc){root.classList.add("classmode");root.style.setProperty("--cc",CLASS_COLOR[sc.cls])}else{root.classList.remove("classmode");root.style.removeProperty("--cc")}
   if(ct){if(sc){ct.style.setProperty('--tabc',CLASS_COLOR[sc.cls]);ct.innerHTML='Character<span class="tdot"></span>'}else{ct.style.removeProperty('--tabc');ct.textContent='Character'}}
   if(keepFocus){ /* typing: refresh only derived bits */
     var cb=$("contrib");if(cb){var c=charById(S.sel);if(c)cb.innerHTML=contribHTML(acc,c)}
     if(tab==="char"){document.querySelectorAll(".rc").forEach(function(b){var c=charById(b.dataset.sel);if(c){var n=b.querySelector(".n");if(n)n.textContent=fullName(c)}})}
     return}
   var v=$("view");
-  v.innerHTML=tab==="roster"?renderRoster(acc):tab==="char"?renderChar(acc):tab==="profs"?renderProfs():tab==="legacy"?renderLegacy(acc):renderData();
+  v.innerHTML=tab==="roster"?renderRoster(acc):tab==="char"?renderChar(acc):tab==="gear"?renderGear():tab==="profs"?renderProfs():tab==="legacy"?renderLegacy(acc):renderData();
+  if(tab==="gear")whRefresh();
 }
 
 /* ================= Persistence ================= */
@@ -734,12 +1084,26 @@ document.addEventListener("click",function(e){
   if(t.dataset.tab){tab=t.dataset.tab;render();return}
   if(t.dataset.go){tab=t.dataset.go;render();return}
   if(t.dataset.sel){S.sel=t.dataset.sel;ui.confirmDelete=false;render();return}
+  if(t.dataset.gview){ui.gearView=t.dataset.gview;ui.gearCopyMsg="";render();return}
+  if(t.dataset.ghave!==undefined){var gc=charById(S.sel);if(!gc)return;var gp=gc.gear.pieces[+t.dataset.ghave];if(gp){gp.have=!gp.have;ui.gearCopyMsg="";changed()}return}
   if(t.dataset.tg){var c=charById(S.sel);if(!c)return;if(t.dataset.v==="none")delete c.t[t.dataset.tg];else c.t[t.dataset.tg]=t.dataset.v;changed();return}
   var a=t.dataset.act;if(!a)return;
   if(a==="add")addChar();
   else if(a==="del"){ui.confirmDelete=true;render()}
   else if(a==="delNo"){ui.confirmDelete=false;render()}
   else if(a==="delYes"){S.chars=S.chars.filter(function(c){return c.id!==S.sel});S.sel=S.chars[0]?S.chars[0].id:null;ui.confirmDelete=false;changed()}
+  else if(a==="gearImportToggle"){ui.gearImportOpen=!ui.gearImportOpen;ui.gearMsg="";render()}
+  else if(a==="gearImport"){var gc2=charById(S.sel),ta=$("g-src");if(!gc2||!ta)return;
+    try{var np=parseSources(ta.value);var old={};gc2.gear.pieces.forEach(function(p){if(p.have)old[p.k+":"+p.slot+":"+p.id]=1});
+      np.forEach(function(p){if(old[p.k+":"+p.slot+":"+p.id])p.have=true});
+      gc2.gear.pieces=np;gc2.gear.src=ta.value;ui.gearImportOpen=false;ui.gearErr=false;
+      var ng=np.filter(function(p){return p.k==="g"}).length,ne=np.length-ng;
+      ui.gearMsg="Imported "+ng+" item"+(ng===1?"":"s")+(ne?" and "+ne+" enchant"+(ne===1?"":"s"):"")+".";changed()}
+    catch(err){ui.gearErr=true;ui.gearMsg=err.message||"Couldn't read that text.";render()}}
+  else if(a==="gearCopy"){harvestNames();var acctV=t.dataset.acct==="1",gc3=charById(S.sel);
+    var txt=acctV?shoppingText(shoppingList(S.chars),true,"SHOPPING LIST — "+(S.account.name||"whole account")):shoppingText(shoppingList([gc3]),false,"SHOPPING LIST — "+fullName(gc3));
+    var showT=function(msg){ui.gearCopyMsg=msg;render();var o=$("gearTextOut");if(o){o.hidden=false;o.value=txt;o.focus();o.select()}};
+    try{navigator.clipboard.writeText(txt).then(function(){ui.gearCopyMsg="Copied. Paste it into Discord, a note or wherever you plan.";render()},function(){showT("Couldn't copy automatically. Select the text below and copy it.")})}catch(err){showT("Select the text below and copy it.")}}
   else if(a==="export")exportCSV();
   else if(a==="copycsv"){var csv=toCSV(S).replace(/^﻿/,"");
     var done=function(){ui.exportMsg="CSV copied. Paste it into a text file saved as .csv.";render()};
@@ -760,6 +1124,12 @@ document.addEventListener("change",function(e){
 });
 document.addEventListener("input",function(e){var el=e.target;if(el.tagName==="TEXTAREA"||el.type==="number"||(el.tagName==="INPUT"&&el.type!=="checkbox"&&el.type!=="file"))handleField(el,false)});
 function handleField(el,final){
+  if(el.dataset.gchar){S.sel=el.value;ui.gearMsg="";ui.gearCopyMsg="";ui.gearImportOpen=false;render();return}
+  if(el.dataset.glink){var gl=charById(S.sel);if(gl){gl.gear.link=el.value.trim();if(final)changed();else scheduleSave()}return}
+  if(el.id==="g-src")return;
+  if(el.dataset.zname||el.dataset.ztype){if(!final)return;var zid=el.dataset.zname||el.dataset.ztype;S.account.zones=S.account.zones||{};var zo=S.account.zones[zid]||{n:"",t:"W"};
+    if(el.dataset.zname)zo.n=el.value.trim();else zo.t=el.value;
+    if(zo.n)S.account.zones[zid]=zo;else if(el.dataset.ztype){S.account.zones[zid]=zo}else delete S.account.zones[zid];changed();return}
   if(el.dataset.a){var k=el.dataset.a;S.account[k]=el.value;if(S.example)S.example=false;
     if(k==="notes"||k==="name"){if(!final){scheduleSave();renderHeader(account(S.chars));return}}
     changed(el.tagName==="INPUT"&&!final);return}
